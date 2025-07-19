@@ -188,7 +188,6 @@ class Gpt41Mini:
             max_completion_tokens=max_completion_tokens,
             response_format=response_format,
             reasoning_effort=None,
-            test=test,
             **kwargs,
         )
         # assert isinstance(tmp, OpenAIResponse), "tmp is not an OpenAIResponse"
@@ -204,7 +203,6 @@ class Gpt41Mini:
         max_completion_tokens: int = 5068,
         response_format: Optional[Dict[str, Any]] = None,
         reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
-        test: bool = False,
         **kwargs: Any,
     ) -> OpenAIResponse:
         """
@@ -218,7 +216,6 @@ class Gpt41Mini:
             max_completion_tokens=max_completion_tokens,
             response_format=response_format,
             reasoning_effort=reasoning_effort,
-            test=test,
             **kwargs,
         )
         assert isinstance(tmp, OpenAIResponse), "tmp is not an OpenAIResponse"
