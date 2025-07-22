@@ -180,6 +180,25 @@ to a timestamped `logs/events_*.jsonl` file.*
 
 ---
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+- **[Documentation Index](docs/index.md)** - Start here for navigation
+- **[Product Requirements Document](docs/prd.md)** - Original project requirements
+- **[Brownfield Enhancement PRD](docs/brownfield-prd/index.md)** - Production-ready enhancements
+- **[User Stories](docs/stories/index.md)** - Detailed implementation stories
+- **[Engine Development Guide](programs/engines/engine_guide.md)** - How to build custom engines
+- **[CLAUDE.md](CLAUDE.md)** - AI assistant instructions for contributors
+
+### Component Documentation
+- **[Message Bus](src/llmgine/bus/README.md)** - Event and command bus architecture
+- **[Tools System](src/llmgine/llm/tools/README.md)** - Function calling and tool registration
+- **[Observability CLI](programs/observability-cli/README.md)** - CLI monitoring tool
+- **[Observability GUI](programs/observability-gui/README.md)** - React-based monitoring interface
+
+---
+
 ## 📁 Repository Layout (abridged)
 
 ```
