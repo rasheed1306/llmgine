@@ -17,9 +17,10 @@ The stories are designed to be implemented in sequence, with each building on th
    - Backpressure and performance guarantees
    - Foundation for scalable applications
 
-3. [Story 1.3: Standardize LLM Request Contract](./story-1-3-standardize-llm-contract.md)
-   - Unified provider interface
-   - Can be done in parallel with 1.1 and 1.2
+3. [Story 1.3: Observability Code-Level Improvements](./story-1-3-observability-improvements.md)
+   - Performance optimizations for observability
+   - Fix memory leaks and event loop issues
+   - Add configurable sampling
 
 ### Quality Assurance
 4. [Story 1.4: Comprehensive Test Coverage - Core Components with Performance](./story-1-4-test-coverage-core.md)
@@ -35,6 +36,16 @@ The stories are designed to be implemented in sequence, with each building on th
 6. [Story 1.6: Final Integration and Documentation](./story-1-6-documentation-integration.md)
    - Brings everything together
    - Must be done last
+
+### Additional Enhancements
+7. [Story 1.7: Implement Async Observability Queue](./story-1-7-async-observability-queue.md)
+   - Non-blocking observability with queue pattern
+   - Maintains existing API compatibility
+   - Builds on story 1.3 improvements
+
+8. [Story 1.8: Standardize LLM Request Contract](./story-1-8-standardize-llm-contract.md)
+   - Unified provider interface
+   - Can be done in parallel with other stories
 
 ## Implementation Notes
 

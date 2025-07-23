@@ -1,12 +1,12 @@
 # Story 1.2: Enhance Message Bus Robustness
 
-## Story
-As a platform engineer,
-I want a production-grade message bus with error recovery and performance guarantees,
-so that I can build reliable applications that scale under load.
+## Status
+Draft
 
-## Context
-The current message bus implementation is functional but lacks production-grade robustness features. For a framework promising production readiness, the bus needs error recovery, backpressure handling, performance guarantees, and comprehensive monitoring.
+## Story
+**As a** platform engineer,
+**I want** a production-grade message bus with error recovery and performance guarantees,
+**so that** I can build reliable applications that scale under load.
 
 ## Acceptance Criteria
 1. Implement error recovery mechanisms for handler failures
@@ -17,81 +17,106 @@ The current message bus implementation is functional but lacks production-grade 
 6. Add comprehensive logging and metrics for bus operations
 7. Create performance benchmarks targeting 10k events/sec
 
-## Integration Verification
-- IV1: Existing handler registration and execution continues to work
-- IV2: No performance degradation for normal workloads
-- IV3: Graceful degradation under extreme load
-- IV4: All existing tests continue to pass
+## Tasks / Subtasks
+- [ ] Task 1: Implement Error Recovery Mechanisms (AC: 1, 3)
+  - [ ] Create ResilientMessageBus class extending MessageBus in src/llmgine/bus/resilience.py
+  - [ ] Implement retry logic with exponential backoff for failed command handlers
+  - [ ] Add dead letter queue (asyncio.Queue) for events that exceed max retries
+  - [ ] Create error tracking data structures to monitor handler failures
+  - [ ] Write unit tests for retry mechanism and dead letter queue behavior
+- [ ] Task 2: Add Backpressure Handling (AC: 2, 5)
+  - [ ] Create BoundedEventQueue class in src/llmgine/bus/backpressure.py
+  - [ ] Implement queue size monitoring with high water mark detection
+  - [ ] Add backpressure strategies (drop oldest, reject new, adaptive rate limiting)
+  - [ ] Integrate bounded queue into MessageBus._event_queue
+  - [ ] Write tests for queue overflow scenarios and backpressure activation
+- [ ] Task 3: Implement Circuit Breaker Pattern (AC: 4)
+  - [ ] Create CircuitBreaker class with states: CLOSED, OPEN, HALF_OPEN
+  - [ ] Add circuit breakers dictionary in ResilientMessageBus for per-handler tracking
+  - [ ] Implement failure threshold detection and circuit opening logic
+  - [ ] Add half-open state with test request handling
+  - [ ] Write unit tests for circuit breaker state transitions
+- [ ] Task 4: Add Performance Monitoring and Metrics (AC: 6)
+  - [ ] Create src/llmgine/bus/metrics.py with metric collection infrastructure
+  - [ ] Implement counters: events_published_total, events_processed_total, events_failed_total
+  - [ ] Add histograms: event_processing_duration_seconds
+  - [ ] Implement gauges: queue_size, backpressure_active, circuit_breaker_state, dead_letter_queue_size
+  - [ ] Integrate metrics collection into bus operations without performance impact
+  - [ ] Write tests verifying metric accuracy
+- [ ] Task 5: Create Performance Benchmarks (AC: 7)
+  - [ ] Create benchmarks/bus_performance.py with benchmark suite
+  - [ ] Implement sustained throughput test targeting 10k events/sec
+  - [ ] Add latency measurement for p50, p95, p99 percentiles
+  - [ ] Create memory usage tracking under sustained load
+  - [ ] Add chaos testing scenarios with random handler failures
+  - [ ] Document performance baseline and optimization recommendations
+- [ ] Task 6: Integration and Backwards Compatibility (IV: 1-4)
+  - [ ] Update MessageBus to optionally use resilience features
+  - [ ] Ensure all existing tests pass without modification
+  - [ ] Add feature flags for enabling/disabling resilience features
+  - [ ] Create migration guide for adopting new features
+  - [ ] Run full integration test suite with resilience enabled
 
-## Technical Details
+## Dev Notes
 
-### Error Recovery Architecture
-```python
-# src/llmgine/bus/resilience.py
-class ResilientMessageBus(MessageBus):
-    def __init__(self, max_retries: int = 3, retry_delay: float = 0.1):
-        super().__init__()
-        self._max_retries = max_retries
-        self._retry_delay = retry_delay
-        self._dead_letter_queue: asyncio.Queue = asyncio.Queue()
-        self._circuit_breakers: Dict[str, CircuitBreaker] = {}
-    
-    async def execute_with_retry(self, command: Command):
-        """Execute command with exponential backoff retry"""
-        for attempt in range(self._max_retries):
-            try:
-                return await self.execute(command)
-            except Exception as e:
-                if attempt == self._max_retries - 1:
-                    await self._dead_letter_queue.put((command, e))
-                    raise
-                await asyncio.sleep(self._retry_delay * (2 ** attempt))
-```
+### Current Implementation Context
+The message bus is implemented as a singleton in `src/llmgine/bus/bus.py` [Source: codebase inspection]. Key implementation details:
+- Uses asyncio.Queue for event processing
+- Maintains separate handler registries per session ID
+- Integrates with ObservabilityManager for event tracking
+- Current implementation has no error recovery or backpressure handling
 
-### Backpressure Handling
-```python
-class BoundedEventQueue:
-    def __init__(self, max_size: int = 10000, high_water_mark: float = 0.8):
-        self._queue = asyncio.Queue(maxsize=max_size)
-        self._high_water_mark = int(max_size * high_water_mark)
-        self._backpressure_active = False
-    
-    async def put(self, event: Event, priority: int = 0):
-        if self._queue.qsize() > self._high_water_mark:
-            self._backpressure_active = True
-            # Apply backpressure strategies
-```
+### Project Structure
+Based on the existing codebase structure:
+- Bus implementation: `src/llmgine/bus/` directory
+- New files should follow pattern: `src/llmgine/bus/{feature}.py`
+- Tests location: `tests/unit/bus/` (create if doesn't exist)
+- Benchmarks: `benchmarks/` directory at project root
+
+### Integration Points
+From Story 1.1 context: The observability module is now standalone and doesn't use the message bus for its own events. This means:
+- Metrics collection can safely use ObservabilityManager without circular dependencies
+- Performance monitoring won't create feedback loops
+- Dead letter queue events should be observable but not re-enter the bus
+
+### Technical Constraints
+- Python 3.11+ required (from pyproject.toml)
+- Must maintain async/await patterns throughout
+- Use asyncio primitives (Queue, Event, Lock) for concurrency
+- Follow existing type hints and strict typing patterns
+
+### Testing Standards
+Based on existing test patterns in `tests/test_bus_session.py`:
+- Use pytest-asyncio for async test support
+- Clean bus state between tests using fixtures
+- Test files follow pattern: `test_{feature}.py`
+- Use pytest.mark.asyncio for async tests
+- Fixtures should handle bus lifecycle (start/stop)
 
 ### Performance Requirements
-- **Throughput**: 10,000+ events/second sustained
-- **Latency**: <10ms p99 for event publishing
-- **Memory**: Bounded memory usage under load
-- **CPU**: Linear scaling with event rate
+Specific targets from acceptance criteria:
+- Throughput: 10,000+ events/second sustained
+- Latency: <10ms p99 for event publishing
+- Memory: Bounded memory usage under load
+- CPU: Linear scaling with event rate
 
-### Monitoring Metrics
-```python
-# Key metrics to expose:
-- events_published_total (counter)
-- events_processed_total (counter)
-- events_failed_total (counter)
-- event_processing_duration_seconds (histogram)
-- queue_size (gauge)
-- backpressure_active (gauge)
-- circuit_breaker_state (gauge per handler)
-- dead_letter_queue_size (gauge)
-```
+## Change Log
+| Date | Version | Description | Author |
+|------|---------|-------------|--------|
+| 2025-07-23 | 1.0 | Initial story draft | Bob (Scrum Master) |
 
-### Implementation Files
-- Create: `src/llmgine/bus/resilience.py` - Error recovery mechanisms
-- Create: `src/llmgine/bus/backpressure.py` - Backpressure handling
-- Create: `src/llmgine/bus/metrics.py` - Performance monitoring
-- Update: `src/llmgine/bus/bus.py` - Integrate resilience features
-- Create: `benchmarks/bus_performance.py` - Performance benchmarks
+## Dev Agent Record
+### Agent Model Used
+_To be filled by dev agent_
 
-## Testing Requirements
-1. Unit tests for all resilience mechanisms
-2. Integration tests simulating failures
-3. Performance benchmarks with various loads
-4. Chaos testing with random failures
-5. Memory leak tests under sustained load
-6. Circuit breaker state transition tests
+### Debug Log References
+_To be filled by dev agent_
+
+### Completion Notes List
+_To be filled by dev agent_
+
+### File List
+_To be filled by dev agent_
+
+## QA Results
+_To be filled by QA agent_

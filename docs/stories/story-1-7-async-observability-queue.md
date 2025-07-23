@@ -1,4 +1,4 @@
-# Story 1.2: Implement Async Observability Queue
+# Story 1.7: Implement Async Observability Queue
 
 ## Status
 Draft

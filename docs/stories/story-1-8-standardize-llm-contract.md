@@ -1,4 +1,4 @@
-# Story 1.2: Standardize LLM Request Contract
+# Story 1.8: Standardize LLM Request Contract
 
 ## Story
 As a developer,
