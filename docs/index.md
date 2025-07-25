@@ -2,26 +2,21 @@
 
 ## Project Documentation
 
-- [Product Requirements Document (PRD)](./prd.md) - Original project requirements
-- [Project Brief](./brief.md) - High-level project overview
-- [Brownfield Enhancement PRD](./brownfield-prd/index.md) - Enhancement plans for production readiness
+- [Product Requirements Document (PRD)](./prd.md) - Unified project requirements and roadmap
+- [Project Status](./project-status.md) - Current implementation status and next steps
 
 ## Development Resources
 
-### Brownfield Enhancement Structure
-- [Project Analysis & Context](./brownfield-prd/intro-project-analysis-and-context.md)
-- [Requirements](./brownfield-prd/requirements.md)
-- [Technical Constraints](./brownfield-prd/technical-constraints-and-integration-requirements.md)
-- [Epic & Story Structure](./brownfield-prd/epic-and-story-structure.md)
-- [Epic 1: Production-Ready MVP](./brownfield-prd/epic-1-complete-production-ready-mvp-with-standalone-observability.md)
+### Active User Stories
+- [Story 1.3: Unified LLM Interface](./stories/story-1-3-unified-llm-interface.md) - **Current Focus**
+- [Story 1.4: Refactor Tool/Context Managers](./stories/story-1-4-refactor-tool-context-managers.md) - Next priority
 
-### User Stories
-Access detailed user stories in the [stories directory](./stories/index.md):
-- OpenTelemetry Handler Implementation
-- Message Bus Enhancement
-- LLM Contract Standardization
-- Test Coverage (Core & Providers)
-- Documentation Integration
+### Completed Stories
+- [Story 1.1: Standalone Observability Module](./stories/story-1-1-opentelemetry-handler.md) ✅
+- [Story 1.2: Enhanced Message Bus](./stories/story-1-2-enhance-message-bus.md) ✅
+
+### Backlog Stories
+- [View all backlog items](./stories/backlog/)
 
 ## Component Documentation
 

@@ -1,75 +1,75 @@
-# llmgine MVP Completion Stories
+# LLMgine User Stories
 
-This directory contains the individual story documents for completing the llmgine MVP as defined in the Brownfield PRD.
+This directory contains the user stories for the llmgine project, organized by status and priority.
 
-## Epic 1: Complete Production-Ready MVP with Standalone Observability
+## Current Sprint
 
-The stories are designed to be implemented in sequence, with each building on the previous:
+### 🔄 In Progress
+- [Story 1.3: Unified LLM Interface](./story-1-3-unified-llm-interface.md)
+  - Standardize LLM interactions across all providers
+  - Enable zero-code provider switching
+  - Maintain backward compatibility
 
-### Core Infrastructure
-1. [Story 1.1: Implement Standalone Observability Module](./story-1-1-opentelemetry-handler.md)
-   - Separate observability from message bus
-   - Includes OpenTelemetry integration
-   - Critical for avoiding circular dependencies
+### 📋 Next Priority
+- [Story 1.4: Refactor Tool and Context Managers](./story-1-4-refactor-tool-context-managers.md)
+  - Update managers to use unified contracts
+  - Depends on Story 1.3 completion
 
-2. [Story 1.2: Enhance Message Bus Robustness](./story-1-2-enhance-message-bus.md)
-   - Production-grade error recovery
-   - Backpressure and performance guarantees
-   - Foundation for scalable applications
+## Completed Stories
 
-3. [Story 1.3: Observability Code-Level Improvements](./story-1-3-observability-improvements.md)
-   - Performance optimizations for observability
-   - Fix memory leaks and event loop issues
-   - Add configurable sampling
+### ✅ Story 1.1: Standalone Observability Module
+- [Full story details](./story-1-1-opentelemetry-handler.md)
+- Separated observability from message bus
+- Implemented OpenTelemetry integration
+- Avoided circular dependencies
 
-### Quality Assurance
-4. [Story 1.4: Comprehensive Test Coverage - Core Components with Performance](./story-1-4-test-coverage-core.md)
-   - Message bus and observability testing
-   - Performance benchmarks (10k events/sec)
-   - Chaos and stress testing
+### ✅ Story 1.2: Enhanced Message Bus Robustness
+- [Full story details](./story-1-2-enhance-message-bus.md)
+- Production-grade error recovery
+- Achieved 12,553 events/sec throughput
+- Implemented resilience patterns (retry, circuit breaker, DLQ)
 
-5. [Story 1.5: Comprehensive Test Coverage - Providers and Tools](./story-1-5-test-coverage-providers.md)
-   - Provider and tool system testing
-   - Should include tests for 1.3 if completed
+## Backlog
 
-### Documentation and Integration
-6. [Story 1.6: Final Integration and Documentation](./story-1-6-documentation-integration.md)
-   - Brings everything together
-   - Must be done last
+The following stories have been moved to backlog pending completion of the unified LLM interface:
 
-### Additional Enhancements
-7. [Story 1.7: Implement Async Observability Queue](./story-1-7-async-observability-queue.md)
-   - Non-blocking observability with queue pattern
-   - Maintains existing API compatibility
-   - Builds on story 1.3 improvements
-
-8. [Story 1.8: Standardize LLM Request Contract](./story-1-8-standardize-llm-contract.md)
-   - Unified provider interface
-   - Can be done in parallel with other stories
-
-## Implementation Notes
-
-- Each story is designed to be completed independently by an AI agent
-- Stories include all necessary context and technical details
-- Integration verification ensures existing functionality remains intact
-- Test coverage is emphasized throughout to achieve production quality
+- [View all backlog stories](./backlog/)
+  - Observability improvements
+  - Test coverage enhancements
+  - Documentation updates
+  - Performance optimizations
 
 ## Success Metrics
 
-- 100% of original PRD requirements implemented
-- >80% test coverage on core components
-- Message bus handles 10,000+ events/second with <10ms p99 latency
-- Graceful degradation under extreme load without data loss
+### Achieved ✅
+- Message bus handles 12,553 events/second (25% above 10k target)
+- <10ms p99 latency (achieved 0.219ms)
 - Zero circular dependencies in observability
-- All examples updated and working
-- Documentation enables <10 minute quick start
-- Zero breaking changes to existing APIs
+- Clean separation of concerns
 
-## Performance Requirements
+### In Progress 🔄
+- Provider-agnostic application development
+- Zero-code provider switching
+- Unified tool and context management
 
-The enhanced message bus must meet these performance targets:
-- **Throughput**: 10,000+ events/second sustained
-- **Latency**: <10ms p99 for event publishing
-- **Reliability**: Zero data loss under normal operations
-- **Scalability**: Linear performance up to 100k events/second
-- **Recovery**: <1 second recovery from handler failures
+### Future 📋
+- >80% test coverage on all components
+- Complete API documentation
+- <10 minute quick start guide
+- Advanced monitoring dashboards
+
+## Development Process
+
+Each story follows a consistent structure:
+1. **User Story**: Clear statement of who, what, and why
+2. **Acceptance Criteria**: Specific, testable requirements
+3. **Technical Details**: Implementation guidance
+4. **Tasks/Subtasks**: Breakdown of work
+5. **Dev Notes**: Important considerations
+6. **QA Results**: Quality assurance findings
+
+Stories are designed to be:
+- Self-contained with all necessary context
+- Implementable by AI agents
+- Testable and verifiable
+- Backward compatible
