@@ -88,7 +88,7 @@ These will be revisited after the unified LLM interface is complete and validate
 ## Documentation Updates
 
 ### Created/Updated
-- `docs/unified-prd.md` - Combined vision and current state
+- `docs/prd.md` - Product requirements document
 - `docs/project-status.md` - This document
 - `docs/stories/story-1-3-unified-llm-interface.md` - Next implementation
 - `docs/stories/story-1-4-refactor-tool-context-managers.md` - Future work

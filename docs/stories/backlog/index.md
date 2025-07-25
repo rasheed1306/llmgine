@@ -5,7 +5,7 @@ These stories have been deferred to the backlog while the project focuses on imp
 ## Deferred from Original Epic 1
 
 ### Observability Enhancements
-- [Story 1.3: Observability Code-Level Improvements](./story-1-3-observability-improvements.md)
+- [Story 1.9: Observability Code-Level Improvements](./story-1-9-observability-improvements.md)
   - Performance optimizations for handlers
   - Memory leak fixes
   - Configurable sampling
