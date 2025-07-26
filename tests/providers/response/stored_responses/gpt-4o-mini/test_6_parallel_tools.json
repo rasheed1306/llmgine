@@ -1,0 +1,88 @@
+{
+  "test_id": "test_6_parallel_tools",
+  "model": "gpt-4o-mini-2024-07-18",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What's the weather in Paris and London?"
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Get weather for a location",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          }
+        }
+      }
+    ],
+    "parallel_tool_calls": true,
+    "max_tokens": 150
+  },
+  "response": {
+    "id": "chatcmpl-BxOaZheUSI0WwBAMIPcxBx9HrWvOp",
+    "object": "chat.completion",
+    "created": 1753495571,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": null,
+          "tool_calls": [
+            {
+              "id": "call_GMiGwlbb7KMcNkNwdgHOLFNH",
+              "type": "function",
+              "function": {
+                "name": "get_weather",
+                "arguments": "{\"location\": \"Paris\"}"
+              }
+            },
+            {
+              "id": "call_vXCuWaxaDNzCFiIZOMUiAG1H",
+              "type": "function",
+              "function": {
+                "name": "get_weather",
+                "arguments": "{\"location\": \"London\"}"
+              }
+            }
+          ],
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 51,
+      "completion_tokens": 44,
+      "total_tokens": 95,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_34a54ae93c"
+  }
+}

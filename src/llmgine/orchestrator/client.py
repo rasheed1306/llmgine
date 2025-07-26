@@ -32,12 +32,12 @@ class UnifiedLLMClient:
         self.anthropic_api_key = anthropic_api_key or os.environ.get("ANTHROPIC_API_KEY")
         self.gemini_api_key = gemini_api_key or os.environ.get("GEMINI_API_KEY")
         self.timeout = timeout
-        
+
         # Initialize providers and adapters
         self._openai_client: Optional[OpenAIClient] = None
         self._anthropic_client: Optional[AnthropicClient] = None
         self._gemini_client: Optional[GeminiClient] = None
-        
+
         self._openai_adapter = OpenAIAdapter()
         self._anthropic_adapter = AnthropicAdapter()
         self._gemini_adapter = GeminiAdapter()
@@ -58,31 +58,28 @@ class UnifiedLLMClient:
             await self._anthropic_client.close()
         if self._gemini_client:
             await self._gemini_client.close()
-    
+
     def _get_openai_client(self) -> OpenAIClient:
         """Get or create OpenAI client."""
         if not self._openai_client:
             self._openai_client = OpenAIClient(
-                api_key=self.openai_api_key,
-                timeout=self.timeout
+                api_key=self.openai_api_key, timeout=self.timeout
             )
         return self._openai_client
-    
+
     def _get_anthropic_client(self) -> AnthropicClient:
         """Get or create Anthropic client."""
         if not self._anthropic_client:
             self._anthropic_client = AnthropicClient(
-                api_key=self.anthropic_api_key,
-                timeout=self.timeout
+                api_key=self.anthropic_api_key, timeout=self.timeout
             )
         return self._anthropic_client
-    
+
     def _get_gemini_client(self) -> GeminiClient:
         """Get or create Gemini client."""
         if not self._gemini_client:
             self._gemini_client = GeminiClient(
-                api_key=self.gemini_api_key,
-                timeout=self.timeout
+                api_key=self.gemini_api_key, timeout=self.timeout
             )
         return self._gemini_client
 
@@ -101,45 +98,44 @@ class UnifiedLLMClient:
         if provider == "openai":
             client = self._get_openai_client()
             adapter = self._openai_adapter
-            
+
             # Convert to provider format
             openai_request = adapter.to_provider_request(request)
-            
+
             # Make request
             response = await client.chat_completion(**openai_request)
-            
+
             # Convert to unified format
             return adapter.from_provider_response(response)
-            
+
         elif provider == "anthropic":
             client = self._get_anthropic_client()
             adapter = self._anthropic_adapter
-            
+
             # Convert to provider format
             anthropic_request = adapter.to_provider_request(request)
-            
+
             # Make request
             response = await client.messages(**anthropic_request)
-            
+
             # Convert to unified format
             return adapter.from_provider_response(response)
-            
+
         elif provider == "gemini":
             client = self._get_gemini_client()
             adapter = self._gemini_adapter
-            
+
             # Convert to provider format
             gemini_request = adapter.to_provider_request(request)
-            
+
             # Make request with model name
             response = await client.generate_content(
-                model=request.model,
-                **gemini_request
+                model=request.model, **gemini_request
             )
-            
+
             # Convert to unified format
             return adapter.from_provider_response(response)
-            
+
         else:
             raise ValueError(f"Unknown provider: {provider}")
 
@@ -163,45 +159,44 @@ class UnifiedLLMClient:
         if provider == "openai":
             client = self._get_openai_client()
             adapter = self._openai_adapter
-            
+
             # Convert to provider format
             openai_request = adapter.to_provider_stream_request(request)
-            
+
             # Make streaming request
             async for chunk in client.chat_completion_stream(**openai_request):
                 unified_chunk = adapter.from_provider_stream_chunk(chunk)
                 if unified_chunk.content or unified_chunk.finish_reason:
                     yield unified_chunk
-                    
+
         elif provider == "anthropic":
             client = self._get_anthropic_client()
             adapter = self._anthropic_adapter
-            
+
             # Convert to provider format
             anthropic_request = adapter.to_provider_stream_request(request)
-            
+
             # Make streaming request
             async for chunk in client.messages_stream(**anthropic_request):
                 unified_chunk = adapter.from_provider_stream_chunk(chunk)
                 if unified_chunk.content or unified_chunk.finish_reason:
                     yield unified_chunk
-                    
+
         elif provider == "gemini":
             client = self._get_gemini_client()
             adapter = self._gemini_adapter
-            
+
             # Convert to provider format
             gemini_request = adapter.to_provider_stream_request(request)
-            
+
             # Make streaming request with model name
             async for chunk in client.generate_content_stream(
-                model=request.model,
-                **gemini_request
+                model=request.model, **gemini_request
             ):
                 unified_chunk = adapter.from_provider_stream_chunk(chunk)
                 if unified_chunk.content or unified_chunk.finish_reason:
                     yield unified_chunk
-                    
+
         else:
             raise ValueError(f"Unknown provider: {provider}")
 

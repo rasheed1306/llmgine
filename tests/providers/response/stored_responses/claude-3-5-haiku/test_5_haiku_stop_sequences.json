@@ -1,0 +1,38 @@
+{
+  "test_id": "test_5_haiku_stop_sequences",
+  "model": "claude-3-5-haiku-20241022",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Count to ten"
+      }
+    ],
+    "stop_sequences": [
+      ".",
+      "!"
+    ],
+    "max_tokens": 100
+  },
+  "response": {
+    "id": "msg_019FWG7nUj1wtYoyMW1hDD5n",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-3-5-haiku-20241022",
+    "content": [
+      {
+        "type": "text",
+        "text": "Here's counting to ten:\n\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 29,
+      "service_tier": "standard"
+    }
+  }
+}

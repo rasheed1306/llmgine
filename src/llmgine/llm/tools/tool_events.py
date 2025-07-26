@@ -3,14 +3,15 @@ emitted by the ToolManager.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 from llmgine.messages.events import Event
-#from llmgine.llm.tools.types import SessionID
+
+# from llmgine.llm.tools.types import SessionID
+
 
 @dataclass
 class ToolManagerEvent(Event):
-    
     # TODO idk about this
     tool_manager_id: str = field(default_factory=str)
     engine_id: str = field(default_factory=str)

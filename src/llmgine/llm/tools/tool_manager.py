@@ -9,7 +9,7 @@ import uuid
 from typing import Any, List, Optional
 
 from llmgine.bus.bus import MessageBus
-from llmgine.llm import AsyncOrSyncToolFunction, ModelFormattedDictTool
+from llmgine.llm import AsyncOrSyncToolFunction, ModelFormattedDictTool, SessionID
 from llmgine.llm.tools.tool import Tool
 from llmgine.llm.tools.tool_events import (
     ToolCompiledEvent,
@@ -24,7 +24,7 @@ from llmgine.llm.tools.tool_parser import (
 )
 from llmgine.llm.tools.tool_register import ToolRegister
 from llmgine.llm.tools.toolCall import ToolCall
-from llmgine.llm import SessionID
+
 
 class ToolManager:
     """Manages tool registration and execution."""
@@ -123,15 +123,15 @@ class ToolManager:
         Raises:
             ValueError: If the tool is not found
         """
-        tool_name : str = tool_call.name
+        tool_name: str = tool_call.name
 
         try:
-              # Parse arguments
-            arguments : dict[str, Any] = json.loads(tool_call.arguments)
+            # Parse arguments
+            arguments: dict[str, Any] = json.loads(tool_call.arguments)
             assert isinstance(arguments, dict)
             return await self.__execute_tool(tool_name, arguments)
         except json.JSONDecodeError as e:
-            error_msg : str = f"Invalid JSON arguments for tool {tool_name}: {e}"
+            error_msg: str = f"Invalid JSON arguments for tool {tool_name}: {e}"
             raise ValueError(error_msg) from e
 
     async def __execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
@@ -148,10 +148,10 @@ class ToolManager:
             ValueError: If the tool is not found
         """
         if tool_name not in self.tools:
-            error_msg : str = f"Tool not found: {tool_name}"
+            error_msg: str = f"Tool not found: {tool_name}"
             raise ValueError(error_msg)
 
-        tool : Tool = self.tools[tool_name]
+        tool: Tool = self.tools[tool_name]
 
         try:
             # Call the tool function with the provided arguments

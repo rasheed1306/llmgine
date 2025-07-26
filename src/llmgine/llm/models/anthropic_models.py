@@ -1,20 +1,20 @@
-
 import os
 import uuid
-from anthropic import AsyncAnthropic
+from typing import Any, Dict, List, Optional
+
 import dotenv
-from pydantic import BaseModel
-from typing import List, Dict, Optional, Literal, Union, Any
-from llmgine.bootstrap import ApplicationConfig
-from llmgine.llm.models.model import Model
-from llmgine.llm.providers.anthropic import AnthropicProvider, AnthropicResponse
-from llmgine.llm.providers import Providers
-from llmgine.llm.providers.providers import Provider
-from llmgine.llm.providers.response import LLMResponse
 import instructor
-from llmgine.llm import ToolChoiceOrDictType, ModelFormattedDictTool
+from anthropic import AsyncAnthropic
+from pydantic import BaseModel
+
+from llmgine.bootstrap import ApplicationConfig
+from llmgine.llm import ModelFormattedDictTool, ToolChoiceOrDictType
+from llmgine.llm.providers import Providers
+from llmgine.llm.providers.anthropic import AnthropicProvider, AnthropicResponse
+from llmgine.llm.providers.response import LLMResponse
 
 dotenv.load_dotenv()
+
 
 class Claude35Haiku:
     """
@@ -31,9 +31,7 @@ class Claude35Haiku:
         if provider == Providers.ANTHROPIC:
             self.api_key = os.getenv("ANTHROPIC_API_KEY")
             self.model = "claude-3-5-haiku-20241022"
-            self.provider = AnthropicProvider(
-                self.api_key, self.model, self.id
-            )
+            self.provider = AnthropicProvider(self.api_key, self.model, self.id)
             self.generate = self._generate_from_anthropic
             self.instructor = None
         else:
@@ -42,7 +40,7 @@ class Claude35Haiku:
             )
 
     async def _generate_from_anthropic(
-        self,   
+        self,
         messages: List[Dict[str, Any]],
         tools: Optional[List[ModelFormattedDictTool]] = None,
         tool_choice: ToolChoiceOrDictType = "auto",
@@ -83,20 +81,26 @@ class Claude35Haiku:
         return result
 
 
-
 class HowAmI(BaseModel):
     emotion: str
     reason: str
 
+
 async def main() -> None:
-    import asyncio
     from llmgine.bootstrap import ApplicationBootstrap
+
     app = ApplicationBootstrap(ApplicationConfig(enable_console_handler=False))
     await app.bootstrap()
     model = Claude35Haiku(Providers.ANTHROPIC)
-    response = await model.generate(messages=[{"role": "user", "content": "Hello, how are you?"}], instruct=True, response_model=HowAmI)
+    response = await model.generate(
+        messages=[{"role": "user", "content": "Hello, how are you?"}],
+        instruct=True,
+        response_model=HowAmI,
+    )
     print(response.content)
+
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

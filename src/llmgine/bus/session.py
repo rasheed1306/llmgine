@@ -1,14 +1,14 @@
-from dataclasses import dataclass
-from typing import Callable, Optional, Type, Any
-import asyncio
 import time
 import uuid
-import contextvars
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, Type
+
+from llmgine.llm import SessionID
+from llmgine.messages.commands import Command, CommandResult
 
 # Import Event directly to avoid circular import
 from llmgine.messages.events import Event
-from llmgine.messages.commands import Command, CommandResult
-from llmgine.llm import SessionID
+
 
 @dataclass
 class SessionEvent(Event):
@@ -57,11 +57,11 @@ class BusSession:
         # Publish a session start event and await it
         await self.bus.publish(SessionStartEvent(session_id=SessionID(self.session_id)))
         return self
-    
+
     async def start(self):
         """Start the session (for non-context-manager usage)."""
         await self.bus.publish(SessionStartEvent(session_id=SessionID(self.session_id)))
-    
+
     async def end(self):
         """End the session (for non-context-manager usage)."""
         if not self._active:
@@ -83,7 +83,8 @@ class BusSession:
 
             # Publish session end event and await it
             end_event = SessionEndEvent(
-                session_id=SessionID(self.session_id), error=exc_value if exc_type else None
+                session_id=SessionID(self.session_id),
+                error=exc_value if exc_type else None,
             )
             await self.bus.publish(end_event)
 
@@ -120,7 +121,9 @@ class BusSession:
             raise RuntimeError("Cannot register handlers on an inactive session")
 
         # Pass session_id explicitly to the bus registration method
-        self.bus.register_command_handler(command_type, handler, SessionID(self.session_id))
+        self.bus.register_command_handler(
+            command_type, handler, SessionID(self.session_id)
+        )
         return self  # For method chaining
 
     async def execute_with_session(self, command: Command) -> Any:

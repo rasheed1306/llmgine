@@ -1,19 +1,22 @@
-from typing import Optional
 from dataclasses import dataclass
-from prompt_toolkit import PromptSession
-from rich.panel import Panel
-from rich import print
+from typing import Optional
+
 from prompt_toolkit import HTML, PromptSession
+from rich import print
+from rich.panel import Panel
 
 from llmgine.messages.commands import Command
-from llmgine.ui.cli.cli import EngineCLI
-from llmgine.ui.cli.components import CLIPrompt, CLIComponent
-from llmgine.ui.cli.config import CLIConfig
 from llmgine.messages.events import Event
+from llmgine.ui.cli.cli import EngineCLI
+from llmgine.ui.cli.components import CLIComponent, CLIPrompt
+from llmgine.ui.cli.config import CLIConfig
+
+
 @dataclass
 class SpecificComponentEvent(Event):
     text: str = ""
     field: str = ""
+
 
 class SpecificComponent(CLIComponent):
     """
@@ -21,8 +24,8 @@ class SpecificComponent(CLIComponent):
     """
 
     def __init__(self, event: SpecificComponentEvent):
-        self.text : str = event.text
-        self.field : str = event.field
+        self.text: str = event.text
+        self.field: str = event.field
 
     @classmethod
     def from_text(cls, text: str, field: str):
@@ -45,10 +48,12 @@ class SpecificComponent(CLIComponent):
     def serialize(self):
         return {"role": "user", "content": self.field + ": " + self.text}
 
+
 @dataclass
 class SpecificPromptCommand(Command):
     prompt: str = ""
     field: str = ""
+
 
 # Custom user prompt
 class SpecificPrompt(CLIPrompt):
@@ -62,10 +67,10 @@ class SpecificPrompt(CLIPrompt):
 
     def __init__(self, command: SpecificPromptCommand, cli: "EngineCLI"):
         self.session = PromptSession()
-        self.prompt : str = command.prompt
-        self.result : Optional[str] = None
+        self.prompt: str = command.prompt
+        self.result: Optional[str] = None
         self.cli = cli
-        self.field : str= command.field
+        self.field: str = command.field
 
     async def get_input(self):
         print(
@@ -99,7 +104,9 @@ class SpecificPrompt(CLIPrompt):
         else:
             return SpecificComponent.from_text(self.result, self.field)
 
+
 # ----------------------------------CUSTOM ENGINE CLI-----------------------------------
+
 
 class VoiceProcessingEngineCLI(EngineCLI):
     def __init__(self, session_id: str):
@@ -117,7 +124,10 @@ class VoiceProcessingEngineCLI(EngineCLI):
                 continue
 
             result = await self.bus.execute(
-                self.engine_command(prompt=audio_file + "&" + number_of_speakers, session_id=self.session_id)
+                self.engine_command(
+                    prompt=audio_file + "&" + number_of_speakers,
+                    session_id=self.session_id,
+                )
             )
             if result.success:
                 self.components.append(self.engine_result_component(result))

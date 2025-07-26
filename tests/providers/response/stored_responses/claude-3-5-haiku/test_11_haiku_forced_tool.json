@@ -1,0 +1,50 @@
+{
+  "test_id": "test_11_haiku_forced_tool",
+  "model": "claude-3-5-haiku-20241022",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Call the test function"
+      }
+    ],
+    "tools": [
+      {
+        "name": "test_function",
+        "description": "A test function",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    ],
+    "tool_choice": {
+      "type": "tool",
+      "name": "test_function"
+    },
+    "max_tokens": 100
+  },
+  "response": {
+    "id": "msg_01B5xB7XgwSUJBuVeHebVisK",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-3-5-haiku-20241022",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01KeHSEaANsFr6bhCkLdAvnK",
+        "name": "test_function",
+        "input": {}
+      }
+    ],
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 408,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 16,
+      "service_tier": "standard"
+    }
+  }
+}

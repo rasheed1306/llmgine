@@ -18,10 +18,10 @@ class ContextManager(ABC):
     @abstractmethod
     def get_context(self, conversation_id: str) -> List[Dict[str, Any]]:
         """Get the conversation context for a specific conversation.
-        
+
         Args:
             conversation_id: The conversation identifier
-            
+
         Returns:
             List[Dict[str, Any]]: The conversation context/history
         """
@@ -30,7 +30,7 @@ class ContextManager(ABC):
     @abstractmethod
     def add_message(self, conversation_id: str, message: Dict[str, Any]) -> None:
         """Add a message to the conversation context.
-        
+
         Args:
             conversation_id: The conversation identifier
             message: The message to add to the context
@@ -40,11 +40,12 @@ class ContextManager(ABC):
     @abstractmethod
     def clear_context(self, conversation_id: str) -> None:
         """Clear the context for a specific conversation.
-        
+
         Args:
             conversation_id: The conversation identifier
         """
         ...
+
 
 # Import implementations after the interface definition
 from llmgine.llm.context.memory import InMemoryContextManager

@@ -9,40 +9,40 @@ To delete a fact, construct the content as follows:
 <DELETE_FACT><fact>
 """
 
-from typing import Optional
-import uuid
 import json
+import uuid
 from dataclasses import dataclass
+from typing import Optional
 
-from llmgine.llm.engine.engine import Engine
-from llmgine.llm.models.model import Model
-from llmgine.messages.commands import CommandResult, Command
-from llmgine.bus.bus import MessageBus
-from llmgine.messages.events import Event
-from llmgine.llm.tools.tool_manager import ToolManager
-from llmgine.llm.models.openai_models import Gpt41Mini
-from llmgine.llm.providers.providers import Providers
-from llmgine.llm.context.memory import SimpleChatHistory
-from llmgine.llm.tools import ToolCall
-from llmgine.ui.cli.voice_processing_engine_cli import (
-    SpecificPrompt,
-    SpecificComponent,
-    SpecificPromptCommand,
-    SpecificComponentEvent,
-)
-from llmgine.llm import SessionID, AsyncOrSyncToolFunction
-from programs.stt import process_audio, merge_speakers, merge_speakers_engine
-from llmgine.llm.models.openai_models import OpenAIResponse
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
+from llmgine.bus.bus import MessageBus
+from llmgine.llm import AsyncOrSyncToolFunction, SessionID
+from llmgine.llm.context.memory import SimpleChatHistory
+from llmgine.llm.engine.engine import Engine
+from llmgine.llm.models.model import Model
+from llmgine.llm.models.openai_models import Gpt41Mini, OpenAIResponse
+from llmgine.llm.providers.providers import Providers
+from llmgine.llm.tools import ToolCall
+from llmgine.llm.tools.tool_manager import ToolManager
+from llmgine.messages.commands import Command, CommandResult
+from llmgine.messages.events import Event
+from llmgine.ui.cli.voice_processing_engine_cli import (
+    SpecificComponent,
+    SpecificComponentEvent,
+    SpecificPrompt,
+    SpecificPromptCommand,
+)
+from programs.stt import merge_speakers, merge_speakers_engine, process_audio
+
 SYSTEM_PROMPT = (
-    f"You are a voice processing engine. You are provided with the number of speakers inside the conversation, "
-    f"and a snippet of what each speaker said in the conversation. "
-    f"The number of speakers present in the snippet will be greater than the actual number of speakers in the conversation. "
-    f"Your task is to decide which speakers in the snippet should be merged into a single speaker, based on the context, speaking style, "
-    f"and the content of what they said. Make sure the number of speakers after merge is the same as the actual number of speakers in the conversation. "
-    f"If you think speaker_1 and speaker_2 are actually one person, speaker_3 and speaker_4 are one person: "
-    f'example function call: merge_speakers("speaker_1,speaker_2") ; merge_speakers("speaker_3,speaker_4")'
+    "You are a voice processing engine. You are provided with the number of speakers inside the conversation, "
+    "and a snippet of what each speaker said in the conversation. "
+    "The number of speakers present in the snippet will be greater than the actual number of speakers in the conversation. "
+    "Your task is to decide which speakers in the snippet should be merged into a single speaker, based on the context, speaking style, "
+    "and the content of what they said. Make sure the number of speakers after merge is the same as the actual number of speakers in the conversation. "
+    "If you think speaker_1 and speaker_2 are actually one person, speaker_3 and speaker_4 are one person: "
+    'example function call: merge_speakers("speaker_1,speaker_2") ; merge_speakers("speaker_3,speaker_4")'
 )
 
 
@@ -212,7 +212,7 @@ class VoiceProcessingEngine(Engine):
                     )
 
                 except Exception as e:
-                    error_msg = f"Error executing tool {tool_call_obj.name}: {str(e)}"
+                    error_msg = f"Error executing tool {tool_call_obj.name}: {e!s}"
                     print(error_msg)  # Debug print
                     # Store error result in history
                     self.context_manager.store_tool_call_result(
@@ -231,11 +231,11 @@ class VoiceProcessingEngine(Engine):
 
 
 async def main():
-    from llmgine.ui.cli.voice_processing_engine_cli import VoiceProcessingEngineCLI
-    from llmgine.ui.cli.components import EngineResultComponent, ToolComponent
-    from llmgine.bootstrap import ApplicationConfig, ApplicationBootstrap
+    from llmgine.bootstrap import ApplicationBootstrap, ApplicationConfig
     from llmgine.llm.models.openai_models import Gpt41Mini
     from llmgine.llm.providers.providers import Providers
+    from llmgine.ui.cli.components import EngineResultComponent, ToolComponent
+    from llmgine.ui.cli.voice_processing_engine_cli import VoiceProcessingEngineCLI
 
     config = ApplicationConfig(enable_console_handler=False)
     bootstrap = ApplicationBootstrap(config)

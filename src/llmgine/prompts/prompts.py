@@ -2,14 +2,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+
 # Helper dictionary for safe formatting
 class SafeFormatterDict(dict[str, Any]):
     def __missing__(self, key: str) -> str:
         return f"{{{key}}}"
 
+
 @dataclass
 class Prompt:
     """Represents a prompt template that can be formatted."""
+
     template: str
 
     def format(self, **kwargs: Any) -> str:
@@ -24,6 +27,7 @@ class Prompt:
             The formatted prompt string.
         """
         return self.template.format_map(SafeFormatterDict(**kwargs))
+
 
 def get_prompt(file_path: str | Path) -> Prompt:
     """
@@ -42,9 +46,11 @@ def get_prompt(file_path: str | Path) -> Prompt:
     """
     try:
         path = Path(file_path)
-        if path.suffix.lower() != '.md':
-            raise ValueError(f"Prompt file must be a markdown file (.md), got {path.suffix}")
-        content = path.read_text(encoding='utf-8')
+        if path.suffix.lower() != ".md":
+            raise ValueError(
+                f"Prompt file must be a markdown file (.md), got {path.suffix}"
+            )
+        content = path.read_text(encoding="utf-8")
         return Prompt(template=content)
     except FileNotFoundError:
         print(f"Error: Prompt file not found at {file_path}")
@@ -52,6 +58,7 @@ def get_prompt(file_path: str | Path) -> Prompt:
     except IOError as e:
         print(f"Error reading prompt file at {file_path}: {e}")
         raise
+
 
 # New function to dump prompt to file
 def dump_prompt(prompt: Prompt, file_path: str | Path) -> None:
@@ -69,15 +76,18 @@ def dump_prompt(prompt: Prompt, file_path: str | Path) -> None:
     """
     try:
         path = Path(file_path)
-        if path.suffix.lower() != '.md':
-            raise ValueError(f"Prompt file must be a markdown file (.md), got {path.suffix}")
+        if path.suffix.lower() != ".md":
+            raise ValueError(
+                f"Prompt file must be a markdown file (.md), got {path.suffix}"
+            )
         # Ensure the directory exists
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(prompt.template, encoding='utf-8')
+        path.write_text(prompt.template, encoding="utf-8")
         print(f"Prompt successfully dumped to {path}")
     except (IOError, OSError) as e:
         print(f"Error dumping prompt to file at {file_path}: {e}")
         raise
+
 
 # Example Usage (optional - can be removed or kept for testing):
 if __name__ == "__main__":
@@ -103,7 +113,9 @@ if __name__ == "__main__":
         print(f"Formatted prompt (with missing key): '{formatted_prompt}'")
 
         # Format the prompt with all keys
-        formatted_prompt_full = prompt_obj.format(name="Universe", day="Wednesday", mood="great")
+        formatted_prompt_full = prompt_obj.format(
+            name="Universe", day="Wednesday", mood="great"
+        )
         print(f"Formatted prompt (full): '{formatted_prompt_full}'")
 
     except Exception as e:

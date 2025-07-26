@@ -13,11 +13,11 @@ from llmgine.bus.session import BusSession
 from llmgine.messages.commands import Command
 from llmgine.messages.events import Event
 from llmgine.observability.events import LogLevel
-from llmgine.observability.manager import ObservabilityManager
 from llmgine.observability.handlers.adapters import (
     create_sync_console_handler,
     create_sync_file_handler,
 )
+from llmgine.observability.manager import ObservabilityManager
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class ApplicationBootstrap(Generic[TConfig]):
 
         # --- Initialize ObservabilityManager ---
         self.observability = ObservabilityManager()
-        
+
         # --- Initialize MessageBus with ObservabilityManager ---
         self.message_bus = MessageBus(observability=self.observability)
 
@@ -133,8 +133,8 @@ class ApplicationBootstrap(Generic[TConfig]):
         if self.config.enable_console_handler:
             self.observability.register_handler(create_sync_console_handler())
         if self.config.enable_file_handler:
-            log_dir = getattr(self.config, 'file_handler_log_dir', 'logs')
-            filename = getattr(self.config, 'file_handler_log_filename', None)
+            log_dir = getattr(self.config, "file_handler_log_dir", "logs")
+            filename = getattr(self.config, "file_handler_log_filename", None)
             self.observability.register_handler(
                 create_sync_file_handler(log_dir=log_dir, filename=filename)
             )

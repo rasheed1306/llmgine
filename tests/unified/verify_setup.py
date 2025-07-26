@@ -16,50 +16,52 @@ async def verify_provider(client: UnifiedLLMClient, model: str, provider_name: s
             max_tokens=10,
             temperature=0,
         )
-        
+
         response = await client.generate(request)
         print(f"✅ {provider_name}: {response.content.strip()}")
         return True
     except Exception as e:
-        print(f"❌ {provider_name}: {str(e)}")
+        print(f"❌ {provider_name}: {e!s}")
         return False
 
 
 async def main():
     """Verify all providers."""
     print("Verifying Unified LLM Interface Setup\n")
-    
+
     # Check which API keys are available
     providers = []
     if os.environ.get("OPENAI_API_KEY"):
         providers.append(("gpt-4o-mini", "OpenAI"))
     else:
         print("⚠️  OPENAI_API_KEY not set")
-    
+
     if os.environ.get("ANTHROPIC_API_KEY"):
         providers.append(("claude-3-5-sonnet-20241022", "Anthropic"))
     else:
         print("⚠️  ANTHROPIC_API_KEY not set")
-    
+
     if os.environ.get("GEMINI_API_KEY"):
         providers.append(("gemini-2.0-flash", "Gemini"))
     else:
         print("⚠️  GEMINI_API_KEY not set")
-    
+
     if not providers:
         print("\n❌ No API keys found. Please set at least one API key.")
         return
-    
+
     print(f"\nTesting {len(providers)} provider(s)...\n")
-    
+
     async with UnifiedLLMClient() as client:
         results = []
         for model, name in providers:
             result = await verify_provider(client, model, name)
             results.append(result)
-    
+
     success_count = sum(results)
-    print(f"\n{'✅' if success_count == len(providers) else '⚠️'} {success_count}/{len(providers)} providers working")
+    print(
+        f"\n{'✅' if success_count == len(providers) else '⚠️'} {success_count}/{len(providers)} providers working"
+    )
 
 
 if __name__ == "__main__":

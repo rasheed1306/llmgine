@@ -26,10 +26,9 @@ class Command:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     metadata: Dict[str, Any] = field(default_factory=dict)
     session_id: SessionID = field(default_factory=lambda: SessionID("BUS"))
-    
+
     def __post_init__(self) -> None:
         pass
-
 
 
 @dataclass

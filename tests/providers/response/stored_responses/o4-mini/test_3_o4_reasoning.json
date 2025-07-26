@@ -1,0 +1,18 @@
+{
+  "test_id": "test_3_o4_reasoning",
+  "model": "o4-mini-2025-04-16",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is 2+2?"
+      }
+    ],
+    "reasoning_effort": "high",
+    "max_completion_tokens": 50
+  },
+  "error": {
+    "type": "RuntimeError",
+    "message": "OpenAI API error (400): {\n  \"error\": {\n    \"message\": \"Could not finish the message because max_tokens or model output limit was reached. Please try again with higher max_tokens.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": null\n  }\n}"
+  }
+}

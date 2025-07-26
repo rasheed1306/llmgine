@@ -1,5 +1,6 @@
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import Any
+
 from llmgine.llm.providers.response import LLMResponse
 
 
@@ -13,4 +14,3 @@ class Model(ABC):
         """
         Generate a response from the model.
         """
-        

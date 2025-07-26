@@ -1,17 +1,24 @@
 import asyncio
-from datetime import datetime, timedelta
 import sys
+from datetime import datetime, timedelta
+
 import pytest
+
 from llmgine.bus.bus import MessageBus, bus_exception_hook
-from llmgine.messages import ScheduledEvent, Event
+from llmgine.messages import Event, ScheduledEvent
+
 
 # Handler that prints when called, accepts base Event type
 def scheduled_event_handler(event: Event):
     if isinstance(event, ScheduledEvent):
-        print(f"Handled scheduled event at {datetime.now().isoformat()} with scheduled_time={event.scheduled_time}")
+        print(
+            f"Handled scheduled event at {datetime.now().isoformat()} with scheduled_time={event.scheduled_time}"
+        )
+
 
 def regular_event_handler(event: Event):
     print(f"Handled regular event at {datetime.now().isoformat()}")
+
 
 @pytest.mark.asyncio
 async def test_scheduled_events_are_processed():
@@ -33,6 +40,7 @@ async def test_scheduled_events_are_processed():
     await asyncio.sleep(6)
     await bus.stop()
 
+
 @pytest.mark.asyncio
 async def test_scheduled_events_and_regular_events_are_processed():
     bus = MessageBus()
@@ -41,7 +49,7 @@ async def test_scheduled_events_and_regular_events_are_processed():
     # Register the handler for ScheduledEvent and regular events
     bus.register_event_handler(ScheduledEvent, scheduled_event_handler)
     bus.register_event_handler(Event, regular_event_handler)
-    
+
     # Schedule two events 10 seconds in the future
     event1 = ScheduledEvent(scheduled_time=datetime.now() + timedelta(seconds=3))
     event2 = Event()
@@ -56,13 +64,16 @@ async def test_scheduled_events_and_regular_events_are_processed():
     await asyncio.sleep(6)
     await bus.stop()
 
+
 async def create_normal_event(bus: MessageBus) -> None:
     event = Event()
     await bus.publish(event)
 
+
 async def create_scheduled_event(bus: MessageBus, scheduled_time: datetime) -> None:
     event = ScheduledEvent(scheduled_time=scheduled_time)
     await bus.publish(event)
+
 
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Test intentionally raises exception")
@@ -74,7 +85,7 @@ async def test_scheduled_events_with_exception():
     # Register the handler for ScheduledEvent and regular events
     bus.register_event_handler(ScheduledEvent, scheduled_event_handler)
     bus.register_event_handler(Event, regular_event_handler)
-    
+
     # Schedule two events 10 seconds in the future
     await create_scheduled_event(bus, datetime.now() + timedelta(seconds=10))
     await create_scheduled_event(bus, datetime.now() + timedelta(seconds=10))
@@ -93,6 +104,7 @@ async def test_scheduled_events_with_exception():
     # Raise an exception to test the excepthook
     raise RuntimeError("Test exception to trigger cleanup")
 
+
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Test intentionally calls sys.exit(1)")
 async def test_scheduled_events_with_kill():
@@ -103,7 +115,7 @@ async def test_scheduled_events_with_kill():
     # Register the handler for ScheduledEvent and regular events
     bus.register_event_handler(ScheduledEvent, scheduled_event_handler)
     bus.register_event_handler(Event, regular_event_handler)
-    
+
     # Schedule two events 10 seconds in the future
     await create_scheduled_event(bus, datetime.now() + timedelta(seconds=10))
     await create_scheduled_event(bus, datetime.now() + timedelta(seconds=10))
@@ -121,6 +133,7 @@ async def test_scheduled_events_with_kill():
 
     # Raise an exception to test the excepthook
     sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(test_scheduled_events_with_kill())

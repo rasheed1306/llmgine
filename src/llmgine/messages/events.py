@@ -9,7 +9,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from types import FrameType
-from typing import Any, Dict, Optional, override
+from typing import Any, Dict, Optional
 
 from llmgine.llm import SessionID
 from llmgine.messages.commands import Command, CommandResult
@@ -51,7 +51,7 @@ class Event:
             "metadata": self.metadata,
             "session_id": self.session_id,
         }
-    
+
     @classmethod
     def from_dict(cls, event_dict: Dict[str, Any]) -> "Event":
         """

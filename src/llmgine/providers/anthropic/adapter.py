@@ -13,7 +13,7 @@ from llmgine.unified.models import (
 
 class AnthropicAdapter(ProviderAdapter):
     """Adapter for converting between unified and Anthropic formats."""
-    
+
     def _convert_content_to_anthropic(
         self, content: Union[str, List[ContentBlock]]
     ) -> Union[str, List[Dict[str, Any]]]:
@@ -43,7 +43,7 @@ class AnthropicAdapter(ProviderAdapter):
                     )
 
         return anthropic_content
-    
+
     def to_provider_request(self, unified: UnifiedRequest) -> Dict[str, Any]:
         """Convert UnifiedRequest to Anthropic API format."""
         anthropic_request = {
@@ -74,7 +74,7 @@ class AnthropicAdapter(ProviderAdapter):
                     "role": message.role,
                     "content": self._convert_content_to_anthropic(message.content),
                 }
-                anthropic_request["messages"].append(anthropic_message)
+                anthropic_request["messages"].append(anthropic_message)  # type: ignore[attr-defined]
 
         # Add system prompt if any
         if system_messages:
@@ -83,33 +83,47 @@ class AnthropicAdapter(ProviderAdapter):
             anthropic_request["system"] = unified.system
 
         return anthropic_request
-    
+
     def from_provider_response(self, response: Dict[str, Any]) -> UnifiedResponse:
         """Convert Anthropic response to unified format."""
         return UnifiedResponse.from_anthropic(response)
-    
+
     def to_provider_stream_request(self, unified: UnifiedRequest) -> Dict[str, Any]:
         """Convert unified request to Anthropic streaming format."""
         request = self.to_provider_request(unified)
         request["stream"] = True
         return request
-    
+
     def from_provider_stream_chunk(self, chunk: Dict[str, Any]) -> UnifiedStreamChunk:
         """Convert Anthropic streaming chunk to unified format."""
-        if chunk["type"] == "content_block_delta":
-            content = chunk["delta"].get("text", "")
+        chunk_type = chunk.get("type", "")
+
+        if chunk_type == "content_block_delta":
+            # Extract text from delta
+            delta = chunk.get("delta", {})
+            content = delta.get("text", "") if delta.get("type") == "text_delta" else ""
             return UnifiedStreamChunk(
                 content=content,
                 finish_reason=None,
                 raw_chunk=chunk,
             )
-        elif chunk["type"] == "message_stop":
+        elif chunk_type == "message_delta":
+            # Check for stop reason in delta
+            delta = chunk.get("delta", {})
+            finish_reason = delta.get("stop_reason")
+            return UnifiedStreamChunk(
+                content="",
+                finish_reason=finish_reason,
+                raw_chunk=chunk,
+            )
+        elif chunk_type == "message_stop":
             return UnifiedStreamChunk(
                 content="",
                 finish_reason="stop",
                 raw_chunk=chunk,
             )
         else:
+            # Other chunk types (message_start, content_block_start, etc.)
             return UnifiedStreamChunk(
                 content="",
                 finish_reason=None,

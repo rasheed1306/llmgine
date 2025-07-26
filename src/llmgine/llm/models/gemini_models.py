@@ -1,13 +1,13 @@
 import os
 import uuid
+from typing import Any, Dict, List, Optional
+
 import dotenv
-from typing import List, Dict, Optional, Literal, Union, Any
-from llmgine.llm.models.model import Model
-from llmgine.llm.providers.openrouter import OpenRouterProvider, OpenRouterResponse
+
+from llmgine.llm import ModelFormattedDictTool, ToolChoiceOrDictType
 from llmgine.llm.providers import Providers
-from llmgine.llm.providers.providers import Provider
+from llmgine.llm.providers.openrouter import OpenRouterProvider
 from llmgine.llm.providers.response import LLMResponse
-from llmgine.llm import ToolChoiceOrDictType, ModelFormattedDictTool
 
 dotenv.load_dotenv()
 
@@ -18,8 +18,8 @@ class Gemini25FlashPreview:
     """
 
     def __init__(self, provider: Providers) -> None:
-        self.id : str = str(uuid.uuid4())
-        self.generate : Optional[Any] = None
+        self.id: str = str(uuid.uuid4())
+        self.generate: Optional[Any] = None
         self._setProvider(provider)
 
     def _setProvider(self, provider: Providers) -> None:
@@ -45,8 +45,6 @@ class Gemini25FlashPreview:
         temperature: float = 0.7,
         max_completion_tokens: int = 5068,
     ) -> LLMResponse:
-        
-
         tmp = self.provider.generate(
             messages=messages,
             tools=tools,
@@ -54,6 +52,5 @@ class Gemini25FlashPreview:
             temperature=temperature,
             max_completion_tokens=max_completion_tokens,
         )
-        #assert isinstance(tmp, LLMResponse), "tmp is not an LLMResponse"
+        # assert isinstance(tmp, LLMResponse), "tmp is not an LLMResponse"
         return tmp
-

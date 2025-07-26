@@ -1,0 +1,89 @@
+{
+  "total_tests": 12,
+  "passed": 10,
+  "failed": 2,
+  "results": [
+    {
+      "test_id": "test_1_haiku_basic",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_2_sonnet_thinking",
+      "model": "claude-sonnet-4-20250514",
+      "success": false,
+      "errors": [
+        "Missing expected field: id",
+        "Missing expected field: type",
+        "Missing expected field: role",
+        "Missing expected field: model",
+        "Missing expected field: content",
+        "Missing expected field: stop_reason",
+        "Missing expected field: usage"
+      ]
+    },
+    {
+      "test_id": "test_3_haiku_system",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_4_haiku_stop_sequences",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_5_haiku_single_tool",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_6_haiku_multiple_tools",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_7_haiku_multi_turn",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_8_haiku_streaming",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_9_error",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_10_haiku_long_response",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_11_haiku_forced_tool",
+      "model": "claude-3-5-haiku-20241022",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_12_sonnet_thinking_tools",
+      "model": "claude-sonnet-4-20250514",
+      "success": false,
+      "errors": [
+        "Missing expected content type: text"
+      ]
+    }
+  ]
+}

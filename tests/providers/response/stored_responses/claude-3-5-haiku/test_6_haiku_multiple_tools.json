@@ -1,0 +1,67 @@
+{
+  "test_id": "test_6_haiku_multiple_tools",
+  "model": "claude-3-5-haiku-20241022",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What's the weather in Paris and London?"
+      }
+    ],
+    "tools": [
+      {
+        "name": "get_weather",
+        "description": "Get weather for a location",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "location"
+          ]
+        }
+      }
+    ],
+    "max_tokens": 150
+  },
+  "response": {
+    "id": "msg_0176S42RFLy5LYEGJjMMgs6V",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-3-5-haiku-20241022",
+    "content": [
+      {
+        "type": "text",
+        "text": "I'll check the weather for both Paris and London for you."
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_01KqfUd6hdkaTbwgUGnsmjFW",
+        "name": "get_weather",
+        "input": {
+          "location": "Paris"
+        }
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_01RFuLkcSSJF4mMDHeqKRZje",
+        "name": "get_weather",
+        "input": {
+          "location": "London"
+        }
+      }
+    ],
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 333,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 103,
+      "service_tier": "standard"
+    }
+  }
+}

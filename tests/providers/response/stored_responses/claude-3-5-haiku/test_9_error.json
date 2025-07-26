@@ -1,0 +1,18 @@
+{
+  "test_id": "test_9_error",
+  "model": "claude-3-5-haiku-20241022",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Test error"
+      }
+    ],
+    "invalid_parameter": "This should cause an error",
+    "max_tokens": 10
+  },
+  "error": {
+    "type": "RuntimeError",
+    "message": "Anthropic API error (400): {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"invalid_parameter: Extra inputs are not permitted\"}}"
+  }
+}

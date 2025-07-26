@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 
 class SyncFileEventHandler(SyncObservabilityHandler):
     """Synchronous handler that logs all events to a JSONL file."""
-    
+
     def __init__(
         self, log_dir: str = "logs", filename: Optional[str] = None, **kwargs: Any
     ):
         """Initialize the JSON file handler.
-        
+
         Args:
             log_dir: Directory to write log files.
             filename: Optional specific filename (if None, uses timestamp).
@@ -31,35 +31,37 @@ class SyncFileEventHandler(SyncObservabilityHandler):
         super().__init__(**kwargs)
         self.log_dir = Path(log_dir)
         os.makedirs(self.log_dir, exist_ok=True)
-        
+
         if filename:
             self.log_file = self.log_dir / filename
         else:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             self.log_file = self.log_dir / f"events_{timestamp}.jsonl"
-        
+
         # Use threading lock for thread safety in synchronous context
         self._file_lock = threading.Lock()
-        logger.info(f"SyncFileEventHandler initialized. Logging events to: {self.log_file}")
-    
+        logger.info(
+            f"SyncFileEventHandler initialized. Logging events to: {self.log_file}"
+        )
+
     def handle(self, event: Event) -> None:
         """Handle the event by writing its data directly to the log file."""
         try:
             # Convert the event to dictionary for serialization
             log_data = self._event_to_dict(event)
-            
+
             # Add event metadata
             log_data["event_type"] = type(event).__name__
-            
+
             # Make sure parent directory exists
             os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
-            
+
             with self._file_lock:
                 with open(self.log_file, "a") as f:
                     f.write(json.dumps(log_data, default=str) + "\n")
         except Exception as e:
             logger.error(f"Error writing event data to file: {e}", exc_info=True)
-    
+
     def _event_to_dict(self, event: Any) -> Dict[str, Any]:
         """Convert an event (dataclass or object) to a dictionary for serialization.
         Handles nested objects, dataclasses, and Enums.
@@ -71,15 +73,15 @@ class SyncFileEventHandler(SyncObservabilityHandler):
             )
         except TypeError:
             pass  # Not a dataclass
-        
+
         if hasattr(event, "__dict__"):
             return {k: self._convert_value(v) for k, v in event.__dict__.items()}
-        
+
         logger.warning(
             f"Could not serialize event of type {type(event)} to dict, using repr()."
         )
         return {"event_repr": repr(event)}
-    
+
     def _convert_value(self, value: Any) -> Any:
         """Helper for _event_to_dict to handle nested structures and special types."""
         if isinstance(value, Enum):

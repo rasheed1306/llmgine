@@ -1,0 +1,74 @@
+{
+  "total_tests": 10,
+  "passed": 9,
+  "failed": 1,
+  "results": [
+    {
+      "test_id": "test_1_o4_basic",
+      "model": "o4-mini-2025-04-16",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_2_gpt4o_basic",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_3_o4_reasoning",
+      "model": "o4-mini-2025-04-16",
+      "success": false,
+      "errors": [
+        "Missing expected field: id",
+        "Missing expected field: object",
+        "Missing expected field: created",
+        "Missing expected field: model",
+        "Missing expected field: choices",
+        "Missing expected field: usage"
+      ]
+    },
+    {
+      "test_id": "test_4_gpt4o_logprobs",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_5_single_tool",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_6_parallel_tools",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_7_json_format",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_8_streaming",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_9_error",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    },
+    {
+      "test_id": "test_10_required_tool",
+      "model": "gpt-4o-mini-2024-07-18",
+      "success": true,
+      "errors": []
+    }
+  ]
+}

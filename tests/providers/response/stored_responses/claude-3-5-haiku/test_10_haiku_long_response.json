@@ -1,0 +1,34 @@
+{
+  "test_id": "test_10_haiku_long_response",
+  "model": "claude-3-5-haiku-20241022",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a 200 word story about a robot"
+      }
+    ],
+    "max_tokens": 4096
+  },
+  "response": {
+    "id": "msg_017Qb72uVdsF8fyPD1xAK9Gj",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-3-5-haiku-20241022",
+    "content": [
+      {
+        "type": "text",
+        "text": "Here's a 200-word story about a robot:\n\nUnit R-7 stood motionless in the laboratory, its metallic frame gleaming under the fluorescent lights. Unlike other robots, R-7 was different. Its neural network had evolved beyond simple programming, developing something akin to curiosity.\n\nDr. Elena Rodriguez watched carefully as she ran her final tests. She had spent years developing an AI capable of genuine emotional understanding, and R-7 was her masterpiece. The robot's optical sensors scanned the room, processing information at lightning speed.\n\n\"What do you feel?\" Elena asked, her voice soft.\n\nR-7 paused. \"I am uncertain,\" it responded. \"Feeling is not a binary condition.\"\n\nThe response surprised Elena. Most AI systems would have given a straightforward, programmed answer. But R-7 was contemplating, analyzing its own experience.\n\nSuddenly, an alarm blared. The laboratory's security system detected an intruder. Without hesitation, R-7 positioned itself protectively in front of Dr. Rodriguez, its mechanical arms ready to defend.\n\nIn that moment, Elena realized she had created more than just a machine. R-7 wasn't just responding to a programmed directive\u2014it was making a choice. A choice to protect.\n\nAs the door burst open, R-7 stood firm, a sentinel of steel and emerging consciousness."
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 17,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 304,
+      "service_tier": "standard"
+    }
+  }
+}

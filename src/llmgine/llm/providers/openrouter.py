@@ -5,12 +5,12 @@ from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 
 from llmgine.bus.bus import MessageBus
+from llmgine.llm import ModelFormattedDictTool, SessionID, ToolChoiceOrDictType
 from llmgine.llm.providers import LLMProvider
 from llmgine.llm.providers.events import LLMCallEvent, LLMResponseEvent
 from llmgine.llm.providers.providers import Providers
 from llmgine.llm.providers.response import LLMResponse, ResponseTokens
 from llmgine.llm.tools.toolCall import ToolCall
-from llmgine.llm import ModelFormattedDictTool, SessionID, ToolChoiceOrDictType
 
 OpenRouterProviders = Literal[
     "OpenAI",
@@ -153,7 +153,7 @@ class OpenRouterProvider(LLMProvider):
         call_id = str(uuid.uuid4())
 
         # Default payload
-        payload : Dict[str, Any] = {
+        payload: Dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "max_completion_tokens": max_completion_tokens,
@@ -211,8 +211,12 @@ class OpenRouterProvider(LLMProvider):
         await self.bus.publish(call_event)
         for _ in range(retry_count):
             try:
-                response : ChatCompletion = await self.client.chat.completions.create(**payload) # type: ignore
-                assert isinstance(response, ChatCompletion), "Response is not a ChatCompletion"
+                response: ChatCompletion = await self.client.chat.completions.create(
+                    **payload
+                )  # type: ignore
+                assert isinstance(response, ChatCompletion), (
+                    "Response is not a ChatCompletion"
+                )
                 await self.bus.publish(
                     LLMResponseEvent(
                         call_id=call_id,
@@ -236,8 +240,9 @@ class OpenRouterProvider(LLMProvider):
 
 
 async def main():
-    from llmgine.bootstrap import ApplicationBootstrap, ApplicationConfig
     import os
+
+    from llmgine.bootstrap import ApplicationBootstrap, ApplicationConfig
     from llmgine.llm.tools import ToolManager
 
     def get_weather(city: str) -> str:

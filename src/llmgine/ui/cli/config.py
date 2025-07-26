@@ -1,12 +1,13 @@
 from dataclasses import dataclass
-from typing import Type, Dict, Any, Tuple, Self, cast
+from typing import Any, Dict, Self, Type, cast
+
 
 class Singleton:
     """
     A base class that ensures only one instance of a class exists.
     """
 
-    _instances: Dict[Type['Singleton'], 'Singleton'] = {}
+    _instances: Dict[Type["Singleton"], "Singleton"] = {}
 
     def __new__(cls: Type[Self], *args: Any, **kwargs: Any) -> Self:
         if cls not in cls._instances:

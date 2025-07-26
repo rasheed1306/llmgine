@@ -8,12 +8,13 @@ from openai.types.chat import ChatCompletion
 
 from llmgine.bootstrap import ApplicationConfig
 from llmgine.bus.bus import MessageBus
+from llmgine.llm import ModelFormattedDictTool, ToolChoiceOrDictType
 from llmgine.llm.providers import LLMProvider
 from llmgine.llm.providers.events import LLMCallEvent, LLMResponseEvent
 from llmgine.llm.providers.providers import Providers
 from llmgine.llm.providers.response import LLMResponse, ResponseTokens
 from llmgine.llm.tools.toolCall import ToolCall
-from llmgine.llm import ModelFormattedDictTool, ToolChoiceOrDictType
+
 
 class AnthropicResponse(LLMResponse):
     def __init__(self, response: ChatCompletion) -> None:
@@ -123,8 +124,10 @@ class AnthropicProvider(LLMProvider):
         )
         await self.bus.publish(call_event)
         try:
-            response : ChatCompletion = await self.client.messages.create(**payload) # type: ignore
-            assert isinstance(response, ChatCompletion), "Response is not a ChatCompletion"
+            response: ChatCompletion = await self.client.messages.create(**payload)  # type: ignore
+            assert isinstance(response, ChatCompletion), (
+                "Response is not a ChatCompletion"
+            )
         except Exception as e:
             await self.bus.publish(
                 LLMResponseEvent(
@@ -158,8 +161,7 @@ async def main():
     app = ApplicationBootstrap(ApplicationConfig(enable_console_handler=False))
     await app.bootstrap()
     provider = AnthropicProvider(
-        api_key=os.getenv("ANTHROPIC_API_KEY") or "", 
-        model="claude-3-5-sonnet-20240620"
+        api_key=os.getenv("ANTHROPIC_API_KEY") or "", model="claude-3-5-sonnet-20240620"
     )
     response = await provider.generate(
         messages=[

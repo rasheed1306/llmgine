@@ -1,0 +1,21 @@
+{
+  "test_id": "test_2_sonnet_thinking",
+  "model": "claude-sonnet-4-20250514",
+  "request_params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is 25 * 17?"
+      }
+    ],
+    "max_tokens": 100,
+    "thinking": {
+      "type": "enabled",
+      "budget_tokens": 1000
+    }
+  },
+  "error": {
+    "type": "RuntimeError",
+    "message": "Anthropic API error (400): {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"thinking.enabled.budget_tokens: Input should be greater than or equal to 1024\"}}"
+  }
+}

@@ -7,12 +7,13 @@ from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 
 from llmgine.bus.bus import MessageBus
+from llmgine.llm import ModelFormattedDictTool, ToolChoiceOrDictType
 from llmgine.llm.providers import LLMProvider
 from llmgine.llm.providers.events import LLMCallEvent, LLMResponseEvent
 from llmgine.llm.providers.providers import Providers
 from llmgine.llm.providers.response import LLMResponse, ResponseTokens
 from llmgine.llm.tools.toolCall import ToolCall
-from llmgine.llm import ModelFormattedDictTool, ToolChoiceOrDictType
+
 
 class OpenAIResponse(LLMResponse):
     def __init__(self, response: ChatCompletion) -> None:
@@ -80,7 +81,7 @@ class OpenAIProvider(LLMProvider):
         call_id = str(uuid.uuid4())
 
         # construct the payload
-        payload : Dict[str, Any] = {
+        payload: Dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "max_completion_tokens": max_completion_tokens,
@@ -113,8 +114,12 @@ class OpenAIProvider(LLMProvider):
         )
         await self.bus.publish(call_event)
         try:
-            response : ChatCompletion = await self.client.chat.completions.create(**payload) # type: ignore
-            assert isinstance(response, ChatCompletion), "Response is not a ChatCompletion"
+            response: ChatCompletion = await self.client.chat.completions.create(
+                **payload
+            )  # type: ignore
+            assert isinstance(response, ChatCompletion), (
+                "Response is not a ChatCompletion"
+            )
         except Exception as e:
             await self.bus.publish(
                 LLMResponseEvent(
@@ -129,7 +134,7 @@ class OpenAIProvider(LLMProvider):
                 raw_response=response,
             )
         )
-        
+
         return OpenAIResponse(response)
 
     def stream(self) -> None:

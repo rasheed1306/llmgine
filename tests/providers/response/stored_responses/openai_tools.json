@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-8mN4XYZ123ABC456DEF789GHI0JKL",
+  "object": "chat.completion",
+  "created": 1706553400,
+  "model": "gpt-3.5-turbo-0613",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_FthC9qRpsL5kBpwwyw6c7j4k",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\": \"San Francisco\"}"
+            }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 45,
+    "completion_tokens": 17,
+    "total_tokens": 62
+  },
+  "system_fingerprint": "fp_xyz789abc123"
+}

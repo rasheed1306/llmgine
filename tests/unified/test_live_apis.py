@@ -17,7 +17,6 @@ import sys
 from datetime import datetime
 
 from llmgine.unified import (
-    ContentBlock,
     UnifiedLLMClient,
     UnifiedMessage,
     UnifiedRequest,
@@ -40,15 +39,15 @@ def print_result(provider: str, success: bool, message: str):
 async def test_basic_generation(client: UnifiedLLMClient):
     """Test basic text generation for all providers."""
     print_header("Test 1: Basic Text Generation")
-    
+
     models = [
         ("OpenAI", "gpt-4o-mini"),
         ("Anthropic", "claude-3-5-sonnet-20241022"),
         ("Gemini", "gemini-2.0-flash"),
     ]
-    
+
     prompt = "Say exactly 'Hello from [provider]!' where [provider] is OpenAI, Anthropic, or Gemini based on which model you are."
-    
+
     for provider_name, model in models:
         try:
             request = UnifiedRequest(
@@ -57,17 +56,13 @@ async def test_basic_generation(client: UnifiedLLMClient):
                 max_tokens=20,
                 temperature=0,
             )
-            
+
             response = await client.generate(request)
-            
+
             # Check if response contains expected provider name
             success = provider_name.lower() in response.content.lower()
-            print_result(
-                provider_name,
-                success,
-                f"Response: {response.content[:50]}..."
-            )
-            
+            print_result(provider_name, success, f"Response: {response.content[:50]}...")
+
         except Exception as e:
             print_result(provider_name, False, f"Error: {str(e)[:50]}...")
 
@@ -75,13 +70,13 @@ async def test_basic_generation(client: UnifiedLLMClient):
 async def test_system_prompts(client: UnifiedLLMClient):
     """Test system prompt handling."""
     print_header("Test 2: System Prompts")
-    
+
     models = [
         ("OpenAI", "gpt-4o-mini"),
         ("Anthropic", "claude-3-5-sonnet-20241022"),
         ("Gemini", "gemini-2.0-flash"),
     ]
-    
+
     for provider_name, model in models:
         try:
             request = UnifiedRequest(
@@ -93,17 +88,13 @@ async def test_system_prompts(client: UnifiedLLMClient):
                 max_tokens=20,
                 temperature=0,
             )
-            
+
             response = await client.generate(request)
-            
+
             # Check if response is uppercase
             success = response.content.strip() == response.content.strip().upper()
-            print_result(
-                provider_name,
-                success,
-                f"Response: {response.content[:30]}..."
-            )
-            
+            print_result(provider_name, success, f"Response: {response.content[:30]}...")
+
         except Exception as e:
             print_result(provider_name, False, f"Error: {str(e)[:50]}...")
 
@@ -111,13 +102,13 @@ async def test_system_prompts(client: UnifiedLLMClient):
 async def test_streaming(client: UnifiedLLMClient):
     """Test streaming responses."""
     print_header("Test 3: Streaming Responses")
-    
+
     models = [
         ("OpenAI", "gpt-4o-mini"),
         ("Anthropic", "claude-3-5-sonnet-20241022"),
         ("Gemini", "gemini-2.0-flash"),
     ]
-    
+
     for provider_name, model in models:
         try:
             request = UnifiedRequest(
@@ -126,20 +117,20 @@ async def test_streaming(client: UnifiedLLMClient):
                 stream=True,
                 temperature=0,
             )
-            
+
             chunks = []
             async for chunk in client.generate_stream(request):
                 chunks.append(chunk)
-            
+
             # Check if we got multiple chunks
             success = len(chunks) > 1
             content = "".join(chunk.content for chunk in chunks)
             print_result(
                 provider_name,
                 success,
-                f"Chunks: {len(chunks)}, Content: {content[:30]}..."
+                f"Chunks: {len(chunks)}, Content: {content[:30]}...",
             )
-            
+
         except Exception as e:
             print_result(provider_name, False, f"Error: {str(e)[:50]}...")
 
@@ -147,36 +138,36 @@ async def test_streaming(client: UnifiedLLMClient):
 async def test_conversation(client: UnifiedLLMClient):
     """Test multi-turn conversation."""
     print_header("Test 4: Multi-turn Conversation")
-    
+
     models = [
         ("OpenAI", "gpt-4o-mini"),
         ("Anthropic", "claude-3-5-sonnet-20241022"),
         ("Gemini", "gemini-2.0-flash"),
     ]
-    
+
     for provider_name, model in models:
         try:
             request = UnifiedRequest(
                 model=model,
                 messages=[
                     UnifiedMessage(role="user", content="Remember the number 42"),
-                    UnifiedMessage(role="assistant", content="I'll remember the number 42."),
-                    UnifiedMessage(role="user", content="What number did I ask you to remember?"),
+                    UnifiedMessage(
+                        role="assistant", content="I'll remember the number 42."
+                    ),
+                    UnifiedMessage(
+                        role="user", content="What number did I ask you to remember?"
+                    ),
                 ],
                 max_tokens=50,
                 temperature=0,
             )
-            
+
             response = await client.generate(request)
-            
+
             # Check if response contains 42
             success = "42" in response.content
-            print_result(
-                provider_name,
-                success,
-                f"Response: {response.content[:50]}..."
-            )
-            
+            print_result(provider_name, success, f"Response: {response.content[:50]}...")
+
         except Exception as e:
             print_result(provider_name, False, f"Error: {str(e)[:50]}...")
 
@@ -184,15 +175,15 @@ async def test_conversation(client: UnifiedLLMClient):
 async def test_temperature_variation(client: UnifiedLLMClient):
     """Test temperature parameter effect."""
     print_header("Test 5: Temperature Variation")
-    
+
     models = [
         ("OpenAI", "gpt-4o-mini"),
         ("Anthropic", "claude-3-5-sonnet-20241022"),
         ("Gemini", "gemini-2.0-flash"),
     ]
-    
+
     prompt = "Write one creative word:"
-    
+
     for provider_name, model in models:
         try:
             # Get two responses with high temperature
@@ -206,15 +197,13 @@ async def test_temperature_variation(client: UnifiedLLMClient):
                 )
                 response = await client.generate(request)
                 responses.append(response.content.strip())
-            
+
             # Check if responses are different (showing temperature effect)
             success = responses[0] != responses[1]
             print_result(
-                provider_name,
-                success,
-                f"Responses: '{responses[0]}' vs '{responses[1]}'"
+                provider_name, success, f"Responses: '{responses[0]}' vs '{responses[1]}'"
             )
-            
+
         except Exception as e:
             print_result(provider_name, False, f"Error: {str(e)[:50]}...")
 
@@ -222,15 +211,15 @@ async def test_temperature_variation(client: UnifiedLLMClient):
 async def test_token_limits(client: UnifiedLLMClient):
     """Test max_tokens parameter."""
     print_header("Test 6: Token Limits")
-    
+
     models = [
         ("OpenAI", "gpt-4o-mini"),
         ("Anthropic", "claude-3-5-sonnet-20241022"),
         ("Gemini", "gemini-2.0-flash"),
     ]
-    
+
     prompt = "Write a long story about a dragon. Make it at least 500 words."
-    
+
     for provider_name, model in models:
         try:
             request = UnifiedRequest(
@@ -239,27 +228,29 @@ async def test_token_limits(client: UnifiedLLMClient):
                 max_tokens=50,  # Very limited
                 temperature=0.7,
             )
-            
+
             response = await client.generate(request)
-            
+
             # Check if response is reasonably short (rough check)
             word_count = len(response.content.split())
-            success = word_count < 100  # Should be well under 100 words with 50 token limit
+            success = (
+                word_count < 100
+            )  # Should be well under 100 words with 50 token limit
             print_result(
                 provider_name,
                 success,
-                f"Words: {word_count}, Finish: {response.finish_reason}"
+                f"Words: {word_count}, Finish: {response.finish_reason}",
             )
-            
+
         except Exception as e:
             print_result(provider_name, False, f"Error: {str(e)[:50]}...")
 
 
 async def main():
     """Run all tests."""
-    print(f"\nUnified LLM Interface - Live API Tests")
+    print("\nUnified LLM Interface - Live API Tests")
     print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
     # Check for API keys
     missing_keys = []
     if not os.environ.get("OPENAI_API_KEY"):
@@ -268,12 +259,12 @@ async def main():
         missing_keys.append("ANTHROPIC_API_KEY")
     if not os.environ.get("GEMINI_API_KEY"):
         missing_keys.append("GEMINI_API_KEY")
-    
+
     if missing_keys:
         print(f"\n❌ Missing environment variables: {', '.join(missing_keys)}")
         print("Please set all required API keys before running tests.")
         sys.exit(1)
-    
+
     # Run tests
     async with UnifiedLLMClient() as client:
         await test_basic_generation(client)
@@ -282,8 +273,8 @@ async def main():
         await test_conversation(client)
         await test_temperature_variation(client)
         await test_token_limits(client)
-    
-    print(f"\n✅ All tests completed!")
+
+    print("\n✅ All tests completed!")
 
 
 if __name__ == "__main__":

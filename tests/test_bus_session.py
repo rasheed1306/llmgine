@@ -1,14 +1,15 @@
 import asyncio
+import uuid
+from dataclasses import dataclass
+from typing import Any, List, Type
+
 import pytest
 import pytest_asyncio
-import uuid
-from dataclasses import dataclass, field
-from typing import List, Type, Any, Callable
 
 from llmgine.bus.bus import MessageBus
-from llmgine.bus.session import BusSession, SessionStartEvent, SessionEndEvent
 from llmgine.messages.commands import Command, CommandResult
 from llmgine.messages.events import Event
+
 # from llmgine.observability.events import EventLogWrapper  # Not used
 
 # Mark all tests in this module as asyncio

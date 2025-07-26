@@ -14,25 +14,28 @@ from typing import Awaitable, Callable, Optional
 from llmgine.messages.commands import Command, CommandResult
 from llmgine.messages.events import Event
 
+
 # Use this enum for navigating the approval workflow
 class ApprovalStatus(Enum):
     """Status of an approval request."""
+
     PENDING = "pending"
     APPROVED = "approved"
     DENIED = "denied"
     EXPIRED = "expired"
 
+
 @dataclass
 class ApprovalCommand(Command):
     """Command to request approval for an action.
-    
+
     This command should be handled by an approval handler that will:
     1. Create an approval request
     2. Send it to the specified approval location (e.g. email, slack, etc.)
     3. Wait for approval result
     4. Execute the callback command based on approval result
     """
-    
+
     approver: Optional[str] = None
     expires_at: Optional[datetime] = None
     on_approval_callback: Optional[Event] = None
@@ -49,50 +52,58 @@ class ApprovalCommand(Command):
 @dataclass
 class ApprovalResult(CommandResult):
     """Result of an approval command execution."""
-    
+
     approval_status: ApprovalStatus = ApprovalStatus.PENDING
+
 
 @dataclass
 class ApprovalRequestEvent(Event):
     """Event emitted when an approval request is created."""
-    
+
     approval_command: Optional[ApprovalCommand] = None
+
 
 @dataclass
 class ApprovalAcceptedEvent(Event):
     """Event emitted when an approval request receives a response."""
+
     pass
+
 
 @dataclass
 class ApprovalDeniedEvent(Event):
     """Event emitted when an approval request receives a response."""
+
     pass
+
 
 @dataclass
 class ApprovalExpiredEvent(Event):
     """Event emitted when an approval request expires."""
+
     pass
 
+
 async def execute_approval_command(
-    command: ApprovalCommand, 
+    command: ApprovalCommand,
     handler: Callable[[Command], Awaitable[CommandResult]],
 ) -> ApprovalResult:
     """Execute an approval command and return the result.
-    
+
     This function continuously checks for approval while monitoring expiry.
     It will return an EXPIRED result if the command expires before approval.
-    
+
     Args:
         command: The approval command to execute
         handler: Async handler that processes the approval command
-    
+
     Returns:
         ApprovalResult with the final status
     """
     from llmgine.bus import MessageBus
-    
+
     # Start the approval process
-    approval_task = asyncio.create_task(handler(command)) # type: ignore
+    approval_task = asyncio.create_task(handler(command))  # type: ignore
     bus = MessageBus()
 
     try:
@@ -102,24 +113,30 @@ async def execute_approval_command(
             # Check if approval task is done
             if approval_task.done():
                 print("Approval task done")
-                result = approval_task.result() # type: ignore
+                result = approval_task.result()  # type: ignore
                 # Ensure result is an ApprovalResult
                 if isinstance(result, ApprovalResult):
                     # Handle callbacks based on approval status
-                    if result.approval_status == ApprovalStatus.APPROVED and command.on_approval_callback:
+                    if (
+                        result.approval_status == ApprovalStatus.APPROVED
+                        and command.on_approval_callback
+                    ):
                         await bus.publish(command.on_approval_callback)
-                    elif result.approval_status == ApprovalStatus.DENIED and command.on_denial_callback:
+                    elif (
+                        result.approval_status == ApprovalStatus.DENIED
+                        and command.on_denial_callback
+                    ):
                         await bus.publish(command.on_denial_callback)
-                    
+
                     return result
 
             # Wait before checking again
             await asyncio.sleep(1)
-        
+
         # Command expired, cancel the approval task
         approval_task.cancel()
         print("Approval task cancelled")
-        
+
         # Handle expiry callback - but don't wait for it to complete
         if command.on_expiry_callback:
             print("Publishing expiry callback")
@@ -133,16 +150,16 @@ async def execute_approval_command(
             success=False,
             command_id=command.command_id,
             approval_status=ApprovalStatus.EXPIRED,
-            error="Approval request expired"
+            error="Approval request expired",
         )
-        
+
     except asyncio.CancelledError:
         # Task was cancelled
         return ApprovalResult(
             success=False,
             command_id=command.command_id,
             approval_status=ApprovalStatus.EXPIRED,
-            error="Approval request was cancelled"
+            error="Approval request was cancelled",
         )
     except Exception as e:
         # Handle any other exceptions
@@ -150,5 +167,5 @@ async def execute_approval_command(
             success=False,
             command_id=command.command_id,
             approval_status=ApprovalStatus.DENIED,
-            error=f"Approval request failed: {str(e)}"
+            error=f"Approval request failed: {e!s}",
         )

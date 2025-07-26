@@ -21,10 +21,21 @@ def main():
     parser = argparse.ArgumentParser(description="LLMgine development tools")
     parser.add_argument(
         "command",
-        choices=["test", "lint", "format", "typecheck", "check", "clean", "install", "demo"],
+        choices=[
+            "test",
+            "lint",
+            "format",
+            "typecheck",
+            "check",
+            "clean",
+            "install",
+            "demo",
+        ],
         help="Command to run",
     )
-    parser.add_argument("--fix", action="store_true", help="Auto-fix issues where possible")
+    parser.add_argument(
+        "--fix", action="store_true", help="Auto-fix issues where possible"
+    )
 
     args = parser.parse_args()
     project_root = Path(__file__).parent.parent
@@ -39,7 +50,11 @@ def main():
         sys.exit(run_command(cmd, cwd=project_root))
 
     elif args.command == "format":
-        sys.exit(run_command(["ruff", "format", "src/", "tests/", "programs/"], cwd=project_root))
+        sys.exit(
+            run_command(
+                ["ruff", "format", "src/", "tests/", "programs/"], cwd=project_root
+            )
+        )
 
     elif args.command == "typecheck":
         sys.exit(run_command(["mypy"], cwd=project_root))
@@ -48,7 +63,10 @@ def main():
         # Run all checks
         commands = [
             (["ruff", "check", "src/", "tests/", "programs/"], "Linting"),
-            (["ruff", "format", "--check", "src/", "tests/", "programs/"], "Format check"),
+            (
+                ["ruff", "format", "--check", "src/", "tests/", "programs/"],
+                "Format check",
+            ),
             (["mypy"], "Type checking"),
             (["pytest"], "Tests"),
         ]
@@ -72,7 +90,22 @@ def main():
             "__pycache__",
         ]
         for pattern in dirs_to_clean:
-            run_command(["find", ".", "-name", pattern, "-type", "d", "-exec", "rm", "-rf", "{}", "+"], cwd=project_root)
+            run_command(
+                [
+                    "find",
+                    ".",
+                    "-name",
+                    pattern,
+                    "-type",
+                    "d",
+                    "-exec",
+                    "rm",
+                    "-rf",
+                    "{}",
+                    "+",
+                ],
+                cwd=project_root,
+            )
 
     elif args.command == "install":
         sys.exit(run_command(["uv", "pip", "install", "-e", ".[dev]"], cwd=project_root))

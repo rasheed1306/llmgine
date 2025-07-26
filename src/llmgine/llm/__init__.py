@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Callable, Dict, List, NewType, Union, Literal
+from typing import Any, Callable, Dict, List, Literal, NewType, Union
 
 # TODO use _type
 

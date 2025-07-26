@@ -14,9 +14,9 @@ from llmgine.llm.context.context_events import (
 
 class SimpleChatHistory:
     def __init__(self, engine_id: str, session_id: SessionID):
-        self.engine_id : str = engine_id
+        self.engine_id: str = engine_id
         self.session_id: SessionID = session_id
-        self.context_manager_id : str = str(uuid.uuid4())
+        self.context_manager_id: str = str(uuid.uuid4())
         self.bus: MessageBus = MessageBus()
         self.response_log: List[Any] = []  # Logs raw responses/inputs
         self.chat_history: List[Dict[str, Any]] = []  # Stores OpenAI formatted messages
@@ -31,7 +31,7 @@ class SimpleChatHistory:
         """Store the raw assistant message object (which might contain tool calls)."""
         self.response_log.append(message_object)
         # Convert the OpenAI message object to the dict format for history
-        history_entry : dict[str, Any] = {
+        history_entry: dict[str, Any] = {
             "role": message_object.role,
             "content": message_object.content,
         }
@@ -68,7 +68,7 @@ class SimpleChatHistory:
 
     def store_tool_call_result(self, tool_call_id: str, name: str, content: str):
         """Store the result of a specific tool call."""
-        result_message : dict[str, Any] = {
+        result_message: dict[str, Any] = {
             "role": "tool",
             "tool_call_id": tool_call_id,
             "name": name,
@@ -79,7 +79,7 @@ class SimpleChatHistory:
 
     async def retrieve(self) -> list[dict[str, Any]]:
         """Retrieve the chat history in OpenAI format."""
-        result : list[dict[str, Any]] = []
+        result: list[dict[str, Any]] = []
         if self.system_prompt:
             result.append({"role": "system", "content": self.system_prompt})
         result.extend(self.chat_history)
@@ -106,7 +106,7 @@ class SingleChatContextManager(ContextManager):
         Args:
             max_context_length: Maximum number of messages to keep in context
         """
-        self.context_raw : list[dict[str, Any]] = []
+        self.context_raw: list[dict[str, Any]] = []
 
     def get_context(self) -> List[Dict[str, Any]]:
         """Get the conversation context for a specific conversation.
@@ -135,7 +135,7 @@ class InMemoryContextManager(ContextManager):
             max_context_length: Maximum number of messages to keep in context
         """
         self.contexts: Dict[str, List[Dict[str, Any]]] = {}
-        self.max_context_length : int = max_context_length
+        self.max_context_length: int = max_context_length
 
     def get_context(self, conversation_id: str) -> List[Dict[str, Any]]:
         """Get the conversation context for a specific conversation.

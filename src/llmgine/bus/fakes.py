@@ -111,7 +111,7 @@ class FakeMessageBus:
         self.published_events.append(event)
 
         event_type = type(event)
-        if event_type in self._event_handlers: # TODO .keys() might be more explicit
+        if event_type in self._event_handlers:  # TODO .keys() might be more explicit
             for handler in self._event_handlers[event_type]:
                 result = handler(event)
                 # Handle both sync and async handlers

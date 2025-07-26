@@ -1,23 +1,22 @@
-import uuid
-import json
 import asyncio
+import json
+import uuid
+from dataclasses import dataclass
 from typing import Any
 
-from llmgine.bus.bus import MessageBus
-from llmgine.llm.context.memory import SimpleChatHistory
-from llmgine.llm.models.openai_models import Gpt41Mini
-from llmgine.llm.providers.providers import Providers
-from llmgine.llm.tools.tool_manager import ToolManager
-from llmgine.llm.tools import ToolCall
-from llmgine.llm.models.openai_models import OpenAIResponse
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
+from llmgine.bus.bus import MessageBus
+from llmgine.llm import AsyncOrSyncToolFunction, SessionID
+from llmgine.llm.context.memory import SimpleChatHistory
+from llmgine.llm.models.openai_models import Gpt41Mini, OpenAIResponse
+from llmgine.llm.providers.providers import Providers
+from llmgine.llm.tools import ToolCall
+from llmgine.llm.tools.tool_manager import ToolManager
 from llmgine.messages.commands import Command, CommandResult
 from llmgine.messages.events import Event
 from llmgine.ui.cli.cli import EngineCLI
 from llmgine.ui.cli.components import EngineResultComponent
-from dataclasses import dataclass
-from llmgine.llm import SessionID, AsyncOrSyncToolFunction
 
 
 @dataclass
@@ -175,7 +174,7 @@ class ToolChatEngine:
                         )
 
                     except Exception as e:
-                        error_msg = f"Error executing tool {tool_call_obj.name}: {str(e)}"
+                        error_msg = f"Error executing tool {tool_call_obj.name}: {e!s}"
                         print(error_msg)  # Debug print
                         # Store error result in history
                         self.context_manager.store_tool_call_result(
@@ -223,9 +222,9 @@ async def main():
 
     print(f"Current working directory: {os.getcwd()}")
 
-    from tools.test_tools import get_weather
-    from llmgine.ui.cli.components import ToolComponent
     from llmgine.bootstrap import ApplicationBootstrap, ApplicationConfig
+    from llmgine.ui.cli.components import ToolComponent
+    from tools.test_tools import get_weather
 
     config = ApplicationConfig(enable_console_handler=False)
     bootstrap = ApplicationBootstrap(config)

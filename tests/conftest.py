@@ -2,9 +2,10 @@
 
 # conftest.py
 
-import pytest
 import os
+
 import dotenv
+import pytest
 
 dotenv.load_dotenv()
 

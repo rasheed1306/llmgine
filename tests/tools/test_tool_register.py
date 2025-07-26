@@ -1,11 +1,11 @@
 """Tests for the tool manager."""
 
-import asyncio
-import json
 import uuid
+
 import pytest
 
 from llmgine.llm.tools import ToolManager
+
 
 class SampleEngine:
     """A sample engine for testing."""
@@ -15,10 +15,15 @@ class SampleEngine:
         self.engine_id = str(uuid.uuid4())
         self.session_id = str(uuid.uuid4())
 
+
 def create_tool_manager(llm_model_name: str = "openai"):
     """Create a tool manager with a message bus and an observability bus."""
     engine = SampleEngine()
-    return ToolManager(engine_id=engine.engine_id, session_id=engine.session_id, llm_model_name=llm_model_name)
+    return ToolManager(
+        engine_id=engine.engine_id,
+        session_id=engine.session_id,
+        llm_model_name=llm_model_name,
+    )
 
 
 @pytest.mark.asyncio

@@ -14,7 +14,7 @@ from llmgine.unified.models import (
 
 class GeminiAdapter(ProviderAdapter):
     """Adapter for converting between unified and Gemini formats."""
-    
+
     def _convert_content_to_gemini_parts(
         self, content: Union[str, List[ContentBlock]]
     ) -> List[Dict[str, Any]]:
@@ -47,7 +47,7 @@ class GeminiAdapter(ProviderAdapter):
                         )
 
         return parts
-    
+
     def to_provider_request(self, unified: UnifiedRequest) -> Dict[str, Any]:
         """Convert UnifiedRequest to Gemini API format."""
         gemini_request: Dict[str, Any] = {
@@ -90,27 +90,27 @@ class GeminiAdapter(ProviderAdapter):
             gemini_request["systemInstruction"] = {"parts": [{"text": unified.system}]}
 
         return gemini_request
-    
+
     def from_provider_response(self, response: Dict[str, Any]) -> UnifiedResponse:
         """Convert Gemini response to unified format."""
         return UnifiedResponse.from_gemini(response)
-    
+
     def to_provider_stream_request(self, unified: UnifiedRequest) -> Dict[str, Any]:
         """Convert unified request to Gemini streaming format."""
         # Gemini uses the same format for streaming
         return self.to_provider_request(unified)
-    
+
     def from_provider_stream_chunk(self, chunk: Dict[str, Any]) -> UnifiedStreamChunk:
         """Convert Gemini streaming chunk to unified format."""
         try:
             # Parse JSON from the line
             chunk_data = json.loads(chunk) if isinstance(chunk, str) else chunk
-            
+
             candidate = chunk_data.get("candidates", [{}])[0]
             content_parts = candidate.get("content", {}).get("parts", [])
             content = "".join(part.get("text", "") for part in content_parts)
             finish_reason = candidate.get("finishReason")
-            
+
             return UnifiedStreamChunk(
                 content=content,
                 finish_reason=finish_reason,
