@@ -2,11 +2,11 @@ import uuid
 from dataclasses import dataclass
 from typing import Optional
 
+from litellm import acompletion
+
 from llmgine.bus.bus import MessageBus
 from llmgine.llm import SessionID
 from llmgine.llm.engine.engine import Engine
-from llmgine.llm.models.model import Model
-from llmgine.llm.providers.response import LLMResponse
 from llmgine.messages.commands import Command, CommandResult
 from llmgine.messages.events import Event
 
@@ -24,7 +24,7 @@ class SinglePassEngineStatusEvent(Event):
 class SinglePassEngine(Engine):
     def __init__(
         self,
-        model: Model,
+        model: str = "gpt-4o-mini",
         system_prompt: Optional[str] = None,
         session_id: Optional[SessionID] = None,
     ):
@@ -42,25 +42,31 @@ class SinglePassEngine(Engine):
 
     async def execute(self, prompt: str) -> str:
         if self.system_prompt:
-            context = [
+            messages = [
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": prompt},
             ]
         else:
-            context = [{"role": "user", "content": prompt}]
+            messages = [{"role": "user", "content": prompt}]
+        
         await self.bus.publish(
             SinglePassEngineStatusEvent(status="Calling LLM", session_id=self.session_id)
         )
 
-        response: LLMResponse = await self.model.generate(context)
+        response = await acompletion(model=self.model, messages=messages)
+        
         await self.bus.publish(
             SinglePassEngineStatusEvent(status="finished", session_id=self.session_id)
         )
-        return response.content
+        
+        # Extract content from litellm response
+        if response.choices and response.choices[0].message.content:
+            return response.choices[0].message.content
+        return ""
 
 
 async def use_single_pass_engine(
-    prompt: str, model: Model, system_prompt: Optional[str] = None
+    prompt: str, model: str = "gpt-4o-mini", system_prompt: Optional[str] = None
 ):
     session_id = SessionID(str(uuid.uuid4()))
     engine = SinglePassEngine(model, system_prompt, session_id)
@@ -69,8 +75,6 @@ async def use_single_pass_engine(
 
 async def main(case: int):
     from llmgine.bootstrap import ApplicationBootstrap, ApplicationConfig
-    from llmgine.llm.models.openai_models import Gpt41Mini
-    from llmgine.llm.providers.providers import Providers
     from llmgine.ui.cli.cli import EngineCLI
     from llmgine.ui.cli.components import EngineResultComponent
 
@@ -79,7 +83,7 @@ async def main(case: int):
     await bootstrap.bootstrap()
     if case == 1:
         engine = SinglePassEngine(
-            Gpt41Mini(Providers.OPENAI), "respond in pirate", "test"
+            "gpt-4o-mini", "respond in pirate", "test"
         )
         cli = EngineCLI("test")
         cli.register_engine(engine)
@@ -89,7 +93,7 @@ async def main(case: int):
         await cli.main()
     elif case == 2:
         result = await use_single_pass_engine(
-            "Hello, world!", Gpt41Mini(Providers.OPENAI), "respond in pirate"
+            "Hello, world!", "gpt-4o-mini", "respond in pirate"
         )
         print(result)
 

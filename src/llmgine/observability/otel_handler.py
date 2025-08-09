@@ -5,7 +5,8 @@ from contextvars import ContextVar
 from typing import Any, Dict, Optional
 
 from llmgine.bus.session import SessionEndEvent, SessionStartEvent
-from llmgine.llm.providers.events import LLMCallEvent, LLMResponseEvent
+# LLM events removed - using litellm directly now
+# from llmgine.llm.providers.events import LLMCallEvent, LLMResponseEvent
 from llmgine.llm.tools.tool_events import ToolExecuteResultEvent
 from llmgine.messages.events import (
     CommandResultEvent,
@@ -152,25 +153,26 @@ class OpenTelemetryHandler(ObservabilityHandler):
                 del spans[event.command_id]
                 current_spans.set(spans)
 
-        elif event_type == LLMCallEvent:
-            # Start span for LLM call
-            parent_context = current_trace.get()
-            span = self._tracer.start_span(
-                name=f"llm_call_{event.model if hasattr(event, 'model') else 'unknown'}",
-                context=parent_context,
-                attributes={
-                    "llm.model": event.model if hasattr(event, "model") else "unknown",
-                    "llm.provider": event.provider
-                    if hasattr(event, "provider")
-                    else "unknown",
-                    "session.id": str(event.session_id),
-                    "event.id": event.event_id,
-                },
-            )
-            # Store span
-            spans = current_spans.get() or {}
-            spans[f"llm_{event.event_id}"] = span
-            current_spans.set(spans)
+        # LLM events removed - using litellm directly now
+        # elif event_type == LLMCallEvent:
+        #     # Start span for LLM call
+        #     parent_context = current_trace.get()
+        #     span = self._tracer.start_span(
+        #         name=f"llm_call_{event.model if hasattr(event, 'model') else 'unknown'}",
+        #         context=parent_context,
+        #         attributes={
+        #             "llm.model": event.model if hasattr(event, "model") else "unknown",
+        #             "llm.provider": event.provider
+        #             if hasattr(event, "provider")
+        #             else "unknown",
+        #             "session.id": str(event.session_id),
+        #             "event.id": event.event_id,
+        #         },
+        #     )
+        #     # Store span
+        #     spans = current_spans.get() or {}
+        #     spans[f"llm_{event.event_id}"] = span
+        #     current_spans.set(spans)
 
         elif event_type == ToolExecuteResultEvent:
             # Handle tool execution result
@@ -196,24 +198,25 @@ class OpenTelemetryHandler(ObservabilityHandler):
             span.set_status(Status(StatusCode.OK))
             span.end()
 
-        elif event_type == LLMResponseEvent:
-            # Handle LLM response
-            spans = current_spans.get() or {}
-            # Find corresponding LLM call span
-            for span_id, span in list(spans.items()):
-                if span_id.startswith("llm_"):
-                    # Add response attributes
-                    if hasattr(event, "content"):
-                        span.set_attribute("llm.response_length", len(event.content))
-                    if hasattr(event, "finish_reason"):
-                        span.set_attribute("llm.finish_reason", event.finish_reason)
-
-                    span.set_status(Status(StatusCode.OK))
-                    span.end()
-                    # Remove from tracking
-                    del spans[span_id]
-                    current_spans.set(spans)
-                    break
+        # LLM events removed - using litellm directly now
+        # elif event_type == LLMResponseEvent:
+        #     # Handle LLM response
+        #     spans = current_spans.get() or {}
+        #     # Find corresponding LLM call span
+        #     for span_id, span in list(spans.items()):
+        #         if span_id.startswith("llm_"):
+        #             # Add response attributes
+        #             if hasattr(event, "content"):
+        #                 span.set_attribute("llm.response_length", len(event.content))
+        #             if hasattr(event, "finish_reason"):
+        #                 span.set_attribute("llm.finish_reason", event.finish_reason)
+        #
+        #             span.set_status(Status(StatusCode.OK))
+        #             span.end()
+        #             # Remove from tracking
+        #             del spans[span_id]
+        #             current_spans.set(spans)
+        #             break
 
         elif event_type == EventHandlerFailedEvent:
             # Record handler failure

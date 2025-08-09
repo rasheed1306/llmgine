@@ -112,14 +112,12 @@ A full example of an engine looks like this:
     from llmgine.ui.cli.cli import EngineCLI
     from llmgine.ui.cli.components import EngineResultComponent
     from llmgine.bootstrap import ApplicationConfig, ApplicationBootstrap
-    from llmgine.llm.models.openai_models import Gpt41Mini
-    from llmgine.llm.providers.providers import Providers
 
     config = ApplicationConfig(enable_console_handler=False)
     bootstrap = ApplicationBootstrap(config)
     await bootstrap.bootstrap()
     engine = SinglePassEngine(
-        Gpt41Mini(Providers.OPENAI), "respond in pirate", "test"
+        "gpt-4o-mini", "respond in pirate", "test"
     )
     cli = EngineCLI("test")
     cli.register_engine(engine)

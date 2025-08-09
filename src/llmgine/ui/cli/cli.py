@@ -7,7 +7,8 @@ from typing import Any, Callable, Optional, Type
 from rich.live import Live
 from rich.spinner import Spinner
 
-from llmgine.bus.bus import AsyncOrSyncCommandHandler, MessageBus
+from llmgine.bus.bus import MessageBus
+from llmgine.bus.interfaces import AsyncCommandHandler
 from llmgine.llm import SessionID
 from llmgine.llm.engine.engine import (
     DummyEngineConfirmationInput,
@@ -69,7 +70,7 @@ class EngineCLI:
         self.engine = engine
 
     def register_engine_command(
-        self, command: Type[Command], engine_function: AsyncOrSyncCommandHandler
+        self, command: Type[Command], engine_function: AsyncCommandHandler
     ):
         self.engine_command = command
         self.bus.register_command_handler(command, engine_function, self.session_id)
