@@ -320,14 +320,13 @@ bus = MessageBus(
 
 ## Testing
 
-The bus includes utilities for testing:
+The bus can be used directly in tests:
 
 ```python
-from llmgine.bus.testing import FakeMessageBus
-
 async def test_user_creation():
-    # Use fake bus for testing
-    bus = FakeMessageBus()
+    # Create bus instance for testing
+    bus = MessageBus()
+    await bus.start()
     
     # Register handler
     bus.register_command_handler(CreateUserCommand, handle_create_user)

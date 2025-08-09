@@ -36,7 +36,7 @@ from llmgine.bus.interfaces import (
     IMessageBus,
 )
 from llmgine.bus.metrics import Timer, get_metrics_collector
-from llmgine.bus.registry_simple import HandlerRegistry
+from llmgine.bus.registry import HandlerRegistry
 from llmgine.bus.session import BusSession
 from llmgine.bus.utils import is_async_function
 from llmgine.database.database import (
