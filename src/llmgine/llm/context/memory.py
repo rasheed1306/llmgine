@@ -1,178 +1,106 @@
-"""In-memory implementation of the ContextManager interface."""
+"""
+Simplified in-memory chat history management.
+Compatible with litellm message format.
+"""
 
-import uuid
 from typing import Any, Dict, List, Optional
-
-from llmgine.bus.bus import MessageBus
-from llmgine.llm import SessionID
-from llmgine.llm.context import ContextManager
-from llmgine.llm.context.context_events import (
-    ChatHistoryRetrievedEvent,
-    ChatHistoryUpdatedEvent,
-)
+from llmgine.llm.tools.toolCall import ToolCall
 
 
 class SimpleChatHistory:
-    def __init__(self, engine_id: str, session_id: SessionID):
-        self.engine_id: str = engine_id
-        self.session_id: SessionID = session_id
-        self.context_manager_id: str = str(uuid.uuid4())
-        self.bus: MessageBus = MessageBus()
-        self.response_log: List[Any] = []  # Logs raw responses/inputs
-        self.chat_history: List[Dict[str, Any]] = []  # Stores OpenAI formatted messages
-        self.system_prompt: Optional[str] = None  # Changed from self.system
-
-    def set_system_prompt(self, prompt: str):
+    """Simple chat history management for litellm."""
+    
+    def __init__(self, engine_id: str = "", session_id: str = ""):
+        """Initialize chat history."""
+        self.engine_id = engine_id
+        self.session_id = session_id
+        self.chat_history: List[Dict[str, Any]] = []
+        self.system_prompt: Optional[str] = None
+    
+    def set_system_prompt(self, prompt: str) -> None:
+        """Set the system prompt."""
         self.system_prompt = prompt
-        # Clear history if system prompt changes?
-        # self.clear()
-
-    async def store_assistant_message(self, message_object: Any):
-        """Store the raw assistant message object (which might contain tool calls)."""
-        self.response_log.append(message_object)
-        # Convert the OpenAI message object to the dict format for history
-        history_entry: dict[str, Any] = {
-            "role": message_object.role,
-            "content": message_object.content,
-        }
-        if message_object.tool_calls:
-            history_entry["tool_calls"] = [
+    
+    def add_user_message(self, content: str) -> None:
+        """Add a user message."""
+        self.chat_history.append({"role": "user", "content": content})
+    
+    def add_assistant_message(
+        self,
+        content: Optional[str] = None,
+        tool_calls: Optional[List[ToolCall]] = None
+    ) -> None:
+        """Add an assistant message with optional tool calls."""
+        message: Dict[str, Any] = {"role": "assistant"}
+        
+        if content:
+            message["content"] = content
+        elif tool_calls:
+            # litellm requires content even with tool calls
+            message["content"] = ""
+        else:
+            message["content"] = ""
+        
+        if tool_calls:
+            message["tool_calls"] = [
                 {
                     "id": tc.id,
-                    "type": tc.type,
+                    "type": "function",
                     "function": {
-                        "name": tc.function.name,
-                        "arguments": tc.function.arguments,
-                    },
+                        "name": tc.name,
+                        "arguments": tc.arguments
+                    }
                 }
-                for tc in message_object.tool_calls
+                for tc in tool_calls
             ]
-        # Ensure content is not None if there are tool_calls, as per OpenAI spec
-        if history_entry.get("tool_calls") and history_entry["content"] is None:
-            history_entry["content"] = ""  # Or potentially remove the content key?
-
-        self.chat_history.append(history_entry)
-        await self.bus.publish(
-            ChatHistoryUpdatedEvent(
-                engine_id=self.engine_id,
-                session_id=self.session_id,
-                context_manager_id=self.context_manager_id,
-                context=self.chat_history,
-            )
-        )
-
-    def store_string(self, string: str, role: str):
-        """Store a simple user or system message."""
-        self.response_log.append([role, string])
-        self.chat_history.append({"role": role, "content": string})
-
-    def store_tool_call_result(self, tool_call_id: str, name: str, content: str):
-        """Store the result of a specific tool call."""
-        result_message: dict[str, Any] = {
+        
+        self.chat_history.append(message)
+    
+    def add_tool_message(self, tool_call_id: str, content: str) -> None:
+        """Add a tool result message."""
+        self.chat_history.append({
             "role": "tool",
             "tool_call_id": tool_call_id,
-            "name": name,
-            "content": content,
-        }
-        self.response_log.append(result_message)  # Log the result message
-        self.chat_history.append(result_message)
-
-    async def retrieve(self) -> list[dict[str, Any]]:
-        """Retrieve the chat history in OpenAI format."""
-        result: list[dict[str, Any]] = []
+            "content": str(content)
+        })
+    
+    def get_messages(self) -> List[Dict[str, Any]]:
+        """Get all messages including system prompt."""
+        messages = []
         if self.system_prompt:
-            result.append({"role": "system", "content": self.system_prompt})
-        result.extend(self.chat_history)
-        await self.bus.publish(
-            ChatHistoryRetrievedEvent(
-                engine_id=self.engine_id,
-                session_id=self.session_id,
-                context_manager_id=self.context_manager_id,
-                context=result,
-            )
-        )
-        return result
-
-    def clear(self):
-        self.response_log = []
-        self.chat_history = []
-        self.system_prompt = ""
-
-
-class SingleChatContextManager(ContextManager):
-    def __init__(self, max_context_length: int = 100):
-        """Initialize the single chat context manager.
-
-        Args:
-            max_context_length: Maximum number of messages to keep in context
-        """
-        self.context_raw: list[dict[str, Any]] = []
-
-    def get_context(self) -> List[Dict[str, Any]]:
-        """Get the conversation context for a specific conversation.
-
-        Returns:
-            List[Dict[str, Any]]: The conversation context/history
-        """
-        return self.context_raw
-
-    def add_message(self, message: Dict[str, Any]) -> None:
-        """Add a message to the conversation context.
-
-        Args:
-            message: The message to add to the context
-        """
-        self.context_raw.append(message)
-
-
-class InMemoryContextManager(ContextManager):
-    """In-memory implementation of the context manager interface."""
-
-    def __init__(self, max_context_length: int = 100):
-        """Initialize the in-memory context manager.
-
-        Args:
-            max_context_length: Maximum number of messages to keep in context
-        """
-        self.contexts: Dict[str, List[Dict[str, Any]]] = {}
-        self.max_context_length: int = max_context_length
-
-    def get_context(self, conversation_id: str) -> List[Dict[str, Any]]:
-        """Get the conversation context for a specific conversation.
-
-        Args:
-            conversation_id: The conversation identifier
-
-        Returns:
-            List[Dict[str, Any]]: The conversation context/history
-        """
-        return self.contexts.get(conversation_id, [])
-
-    def add_message(self, conversation_id: str, message: Dict[str, Any]) -> None:
-        """Add a message to the conversation context.
-
-        Args:
-        conversation_id: The conversation identifier
-            message: The message to add to the context
-        """
-        if conversation_id not in self.contexts:
-            self.contexts[conversation_id] = []
-
-        self.contexts[conversation_id].append(message)
-
-        # Trim context if it exceeds max length
-        if len(self.contexts[conversation_id]) > self.max_context_length:
-            # Keep the first message (usually system prompt) and trim the oldest messages
-            first_message = self.contexts[conversation_id][0]
-            self.contexts[conversation_id] = [first_message] + self.contexts[
-                conversation_id
-            ][-(self.max_context_length - 1) :]
-
-    def clear_context(self, conversation_id: str) -> None:
-        """Clear the context for a specific conversation.
-
-        Args:
-            conversation_id: The conversation identifier
-        """
-        if conversation_id in self.contexts:
-            self.contexts[conversation_id] = []
+            messages.append({"role": "system", "content": self.system_prompt})
+        messages.extend(self.chat_history)
+        return messages
+    
+    def clear(self) -> None:
+        """Clear chat history but keep system prompt."""
+        self.chat_history.clear()
+    
+    # Backwards compatibility methods
+    async def store_assistant_message(self, message_object: Any) -> None:
+        """Store assistant message - for backwards compatibility."""
+        if hasattr(message_object, 'content'):
+            content = message_object.content
+        else:
+            content = ""
+            
+        tool_calls = None
+        if hasattr(message_object, 'tool_calls') and message_object.tool_calls:
+            tool_calls = [
+                ToolCall(
+                    id=tc.id,
+                    name=tc.function.name,
+                    arguments=tc.function.arguments
+                )
+                for tc in message_object.tool_calls
+            ]
+        
+        self.add_assistant_message(content, tool_calls)
+    
+    async def store_tool_result(self, tool_call_id: str, result: str) -> None:
+        """Store tool result - for backwards compatibility."""
+        self.add_tool_message(tool_call_id, result)
+    
+    async def retrieve(self) -> List[Dict[str, Any]]:
+        """Retrieve messages - for backwards compatibility."""
+        return self.get_messages()

@@ -1,202 +1,181 @@
-"""Tool management and execution for LLMs.
-
-This module provides a way to register, describe, and execute tools
-that can be called by language models.
+"""
+Simplified tool management for litellm.
+Handles tool registration, schema generation, and execution.
 """
 
+import asyncio
+import inspect
 import json
-import uuid
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
-from llmgine.bus.bus import MessageBus
-from llmgine.llm import AsyncOrSyncToolFunction, ModelFormattedDictTool, SessionID
-from llmgine.llm.tools.tool import Tool
-from llmgine.llm.tools.tool_events import (
-    ToolCompiledEvent,
-    ToolExecuteResultEvent,
-    ToolRegisterEvent,
-)
-from llmgine.llm.tools.tool_parser import (
-    ClaudeToolParser,
-    DeepSeekToolParser,
-    OpenAIToolParser,
-    ToolParser,
-)
-from llmgine.llm.tools.tool_register import ToolRegister
+from llmgine.llm import AsyncOrSyncToolFunction
 from llmgine.llm.tools.toolCall import ToolCall
+
+if TYPE_CHECKING:
+    from llmgine.llm.context.memory import SimpleChatHistory
 
 
 class ToolManager:
-    """Manages tool registration and execution."""
-
-    def __init__(
-        self, engine_id: str, session_id: SessionID, llm_model_name: Optional[str] = None
-    ):
-        """Initialize the tool manager."""
-        self.tool_manager_id = str(uuid.uuid4())
-        self.engine_id: str = engine_id  # TODO make type
-        self.session_id: SessionID = session_id
-        self.message_bus: MessageBus = MessageBus()
-        self.tools: dict[str, Tool] = {}
-        self.__tool_parser: ToolParser = self._get_parser(llm_model_name)
-        self.__tool_register: ToolRegister = ToolRegister()
-
-    async def register_tool(self, tool_function: AsyncOrSyncToolFunction) -> None:
-        """Register a tool, tool manager will publish the tool
-            registration event and hand it to the tool register.
-
-        Args:
-            tool: The tool to register
-        """
-
-        name: str
-        tool: Tool
-        name, tool = self.__tool_register.register_tool(tool_function)
-
-        self.tools[name] = tool
-
-        # Publish the tool registration event
-        await self.message_bus.publish(
-            ToolRegisterEvent(
-                tool_manager_id=self.tool_manager_id,
-                session_id=self.session_id,
-                engine_id=self.engine_id,
-                tool_info=tool.to_dict(),
-            )
-        )
-
-    async def register_tools(self, platform_list: List[str]):
-        """Register tools for a specific platform. Completely independent from register_tool.
-
-        Args:
-            platform_list: A list of platform names
-        """
-
-        # Register tools for each platform
-        for name, tool in self.__tool_register.register_tools(platform_list).items():
-            self.tools[name] = tool
-
-            # Publish the tool registration event
-            await self.message_bus.publish(
-                ToolRegisterEvent(
-                    tool_manager_id=self.tool_manager_id,
-                    session_id=self.session_id,
-                    engine_id=self.engine_id,
-                    tool_info=tool.to_dict(),
-                )
-            )
-
-    async def get_tools(self) -> list[ModelFormattedDictTool]:
-        """Get all registered tools from the tool register.
-
-        Returns:
-            A list of tools in the registered model's format
-        """
-        # Collect all tools from the tool register
-        tools = list(self.tools.values())
-
-        # Publish the tool compilation event
-        await self.message_bus.publish(
-            ToolCompiledEvent(
-                tool_manager_id=self.tool_manager_id,
-                session_id=self.session_id,
-                engine_id=self.engine_id,
-                tool_compiled_list=[tool.to_dict() for tool in tools],
-            )
-        )
-
-        ret: list[ModelFormattedDictTool] = [
-            self.__tool_parser.parse_tool(tool) for tool in tools
-        ]
-
-        return ret
-
-    async def execute_tool_call(self, tool_call: ToolCall) -> Optional[Any]:
-        """Execute a tool from a ToolCall object.
-
-        Args:
-            tool_call: The tool call to execute
-
-        Returns:
-            The result of the tool execution
-
-        Raises:
-            ValueError: If the tool is not found
-        """
-        tool_name: str = tool_call.name
-
+    """Simplified tool manager for litellm."""
+    
+    def __init__(self, chat_history: Optional["SimpleChatHistory"] = None):
+        """Initialize tool manager."""
+        self.chat_history = chat_history
+        self.tools: Dict[str, Callable] = {}
+        self.tool_schemas: List[Dict[str, Any]] = []
+    
+    def register_tool(self, func: AsyncOrSyncToolFunction) -> None:
+        """Register a function as a tool."""
+        name = func.__name__
+        self.tools[name] = func
+        
+        # Generate OpenAI-format schema
+        schema = self._generate_tool_schema(func)
+        self.tool_schemas.append(schema)
+    
+    def _generate_tool_schema(self, func: Callable) -> Dict[str, Any]:
+        """Generate OpenAI-format tool schema from function."""
+        sig = inspect.signature(func)
+        doc = inspect.getdoc(func) or f"Function {func.__name__}"
+        
+        properties = {}
+        required = []
+        
+        for param_name, param in sig.parameters.items():
+            if param_name == 'self':
+                continue
+            
+            # Determine type
+            param_type = "string"
+            if param.annotation != inspect.Parameter.empty:
+                annotation = param.annotation
+                # Handle basic types
+                if annotation == int:
+                    param_type = "integer"
+                elif annotation == float:
+                    param_type = "number"
+                elif annotation == bool:
+                    param_type = "boolean"
+                elif annotation in (list, List):
+                    param_type = "array"
+                elif annotation in (dict, Dict):
+                    param_type = "object"
+                # Handle Optional and generic types
+                elif hasattr(annotation, '__origin__'):
+                    origin = annotation.__origin__
+                    if origin == list or origin is list:
+                        param_type = "array"
+                    elif origin == dict or origin is dict:
+                        param_type = "object"
+                    # Handle Union types (Optional is Union[X, None])
+                    else:
+                        # Try to import Union from typing to check properly
+                        from typing import Union, get_origin, get_args
+                        if get_origin(annotation) is Union:
+                            # Get the first non-None type from Union args
+                            args = get_args(annotation)
+                            for arg in args:
+                                if arg is not type(None):
+                                    if arg == list or get_origin(arg) == list:
+                                        param_type = "array"
+                                        break
+                                    elif arg == dict or get_origin(arg) == dict:
+                                        param_type = "object"
+                                        break
+                                    elif arg == int:
+                                        param_type = "integer"
+                                        break
+                                    elif arg == float:
+                                        param_type = "number"
+                                        break
+                                    elif arg == bool:
+                                        param_type = "boolean"
+                                        break
+                                    elif arg == str:
+                                        param_type = "string"
+                                        break
+            
+            # Extract description from docstring if available
+            param_desc = f"{param_name} parameter"
+            # Simple docstring parsing for parameter descriptions
+            if doc and f":param {param_name}:" in doc:
+                start = doc.find(f":param {param_name}:") + len(f":param {param_name}:")
+                end = doc.find("\n", start)
+                if end != -1:
+                    param_desc = doc[start:end].strip()
+            
+            properties[param_name] = {
+                "type": param_type,
+                "description": param_desc
+            }
+            
+            # Check if required (no default value)
+            if param.default == inspect.Parameter.empty:
+                required.append(param_name)
+        
+        return {
+            "type": "function",
+            "function": {
+                "name": func.__name__,
+                "description": doc.split('\n')[0] if '\n' in doc else doc,
+                "parameters": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": required
+                }
+            }
+        }
+    
+    def parse_tools_to_list(self) -> List[Dict[str, Any]]:
+        """Get all tools in OpenAI format for litellm."""
+        return self.tool_schemas if self.tool_schemas else None
+    
+    async def execute_tool_calls(self, tool_calls: List[ToolCall]) -> List[Any]:
+        """Execute multiple tool calls."""
+        results = []
+        for tool_call in tool_calls:
+            result = await self.execute_tool_call(tool_call)
+            results.append(result)
+        return results
+    
+    async def execute_tool_call(self, tool_call: ToolCall) -> Any:
+        """Execute a single tool call."""
+        if tool_call.name not in self.tools:
+            return f"Error: Tool '{tool_call.name}' not found"
+        
+        func = self.tools[tool_call.name]
+        
         try:
             # Parse arguments
-            arguments: dict[str, Any] = json.loads(tool_call.arguments)
-            assert isinstance(arguments, dict)
-            return await self.__execute_tool(tool_name, arguments)
-        except json.JSONDecodeError as e:
-            error_msg: str = f"Invalid JSON arguments for tool {tool_name}: {e}"
-            raise ValueError(error_msg) from e
-
-    async def __execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
-        """Execute a tool with the given arguments.
-
-        Args:
-            tool_name: The name of the tool to execute
-            arguments: The arguments to pass to the tool
-
-        Returns:
-            The result of the tool execution
-
-        Raises:
-            ValueError: If the tool is not found
-        """
-        if tool_name not in self.tools:
-            error_msg: str = f"Tool not found: {tool_name}"
-            raise ValueError(error_msg)
-
-        tool: Tool = self.tools[tool_name]
-
-        try:
-            # Call the tool function with the provided arguments
-            if tool.is_async:
-                result = await tool.function(**arguments)
+            if isinstance(tool_call.arguments, str):
+                if tool_call.arguments.strip() == "":
+                    args = {}
+                else:
+                    args = json.loads(tool_call.arguments)
             else:
-                result = tool.function(**arguments)
-
-            # Publish the tool execution event
-            await self.message_bus.publish(
-                ToolExecuteResultEvent(
-                    tool_manager_id=self.tool_manager_id,
-                    session_id=self.session_id,
-                    engine_id=self.engine_id,
-                    execution_succeed=True,
-                    tool_info=tool.to_dict(),
-                    tool_args=arguments,
-                    tool_result=str(result),
-                )
-            )
+                args = tool_call.arguments
+            
+            # Handle empty/None arguments
+            if not args:
+                args = {}
+            
+            # Execute function
+            if asyncio.iscoroutinefunction(func):
+                result = await func(**args)
+            else:
+                result = func(**args)
+            
             return result
         except Exception as e:
-            # Publish the tool execution event
-            await self.message_bus.publish(
-                ToolExecuteResultEvent(
-                    tool_manager_id=self.tool_manager_id,
-                    session_id=self.session_id,
-                    engine_id=self.engine_id,
-                    execution_succeed=False,
-                    tool_info=tool.to_dict(),
-                    tool_args=arguments,
-                    tool_result=str(e),
-                )
-            )
-
-            return f"ERROR: {e!s}"
-
-    def _get_parser(self, llm_model_name: Optional[str] = None) -> ToolParser:
-        """Get the appropriate tool parser based on the LLM model name."""
-        if llm_model_name == "openai":
-            tool_parser: ToolParser = OpenAIToolParser()
-        elif llm_model_name == "claude":
-            tool_parser = ClaudeToolParser()
-        elif llm_model_name == "deepseek":
-            tool_parser = DeepSeekToolParser()
-        else:
-            tool_parser = OpenAIToolParser()
-        return tool_parser
+            return f"Error executing {tool_call.name}: {str(e)}"
+    
+    def chat_history_to_messages(self) -> List[Dict[str, Any]]:
+        """Get messages from chat history for litellm."""
+        if self.chat_history:
+            return self.chat_history.get_messages()
+        return []
+    
+    # Backwards compatibility - these can be removed if not needed
+    async def register_tool_async(self, func: AsyncOrSyncToolFunction) -> None:
+        """Register tool async - for backwards compatibility."""
+        self.register_tool(func)
