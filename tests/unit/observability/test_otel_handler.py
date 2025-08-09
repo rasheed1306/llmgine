@@ -3,7 +3,6 @@
 from unittest.mock import Mock, patch
 
 from llmgine.bus.session import SessionEndEvent, SessionStartEvent
-from llmgine.llm.providers.events import LLMCallEvent, LLMResponseEvent
 from llmgine.llm.tools.tool_events import ToolExecuteResultEvent
 from llmgine.messages.events import (
     CommandResultEvent,
@@ -107,26 +106,6 @@ class TestOpenTelemetryHandler:
         mock_span.set_status.assert_called_once()
         mock_span.end.assert_called_once()
 
-    def test_llm_call_event(self):
-        """Test handling LLMCallEvent."""
-        # Mock tracer
-        mock_tracer = Mock()
-        mock_span = Mock()
-        mock_tracer.start_span.return_value = mock_span
-
-        handler = OpenTelemetryHandler()
-        handler._initialized = True
-        handler._tracer = mock_tracer
-
-        # Create and handle event - using actual event attributes
-        event = LLMCallEvent(session_id="test-session", model="gpt-4", provider="openai")
-        handler.handle(event)
-
-        # Verify span was created
-        mock_tracer.start_span.assert_called_once()
-        call_args = mock_tracer.start_span.call_args
-        assert "llm_call_" in call_args[1]["name"]
-
     @patch("llmgine.observability.otel_handler.Status")
     @patch("llmgine.observability.otel_handler.StatusCode")
     def test_tool_execute_result_event(self, mock_status_code, mock_status):
@@ -209,8 +188,6 @@ class TestOpenTelemetryHandler:
             SessionEndEvent,
             CommandStartedEvent,
             CommandResultEvent,
-            LLMCallEvent,
-            LLMResponseEvent,
             ToolExecuteResultEvent,
             EventHandlerFailedEvent,
         ]
